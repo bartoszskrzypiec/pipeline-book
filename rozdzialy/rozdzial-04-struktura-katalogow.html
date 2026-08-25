@@ -12,16 +12,94 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 04/22</span><span>CZĘŚĆ · II</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>PATH · /show/DEMO/shots/seq010/shot0100/lighting/publish</span><span>STATUS · sparsowalne</span>
   </div>
 
   <div class="eyebrow">Rozdział 4 / Dane i wersje</div>
   <h1>Struktura katalogów i konwencje nazewnictwa</h1>
   <p class="subtitle">Tysiąc artystów zapisujących pliki bez wspólnej reguły to gwarantowana katastrofa — jak nazwa pliku sama w sobie staje się metadanymi.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Ścieżka i nazwa pliku w studiu VFX nie są dowolne — to ustandaryzowany zapis kontekstu (show, shot/asset, task, wersja), który człowiek i skrypt odczytują tak samo.</li>
+      <li>Konwencja musi być na tyle sztywna, żeby dało się ją sparsować programem, a nie tylko odczytać wzrokiem — to odróżnia prawdziwą konwencję od <code>final_v2_FINAL.mb</code>.</li>
+      <li>Ta sama struktura rozdziela pliki robocze (workspace artysty) od publikowanych — fundament, na którym stoi cały Rozdział 7.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 3 pokazał mapę działów. Ten rozdział schodzi na poziom tego, co faktycznie leży na dysku — bo to właśnie tam, w strukturze katalogów i nazwach plików, mapa z poprzedniego rozdziału zamienia się w coś, czego dotyka artysta i czego używają narzędzia. Dobra struktura wygląda z zewnątrz nudno: zero kreatywności, wszystko sztywno ustalone z góry. To zamierzone — im mniej miejsca na indywidualną interpretację, tym mniej okazji do nieporozumienia z Rozdziału 1.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dwie gałęzie na dysku</div>
+    <h2>Struktura odzwierciedla podział z Rozdziału 2</h2>
+    <p>Skoro produkcja dzieli się na potok assetów i potok shotów, struktura katalogów robi dokładnie to samo — na najwyższym poziomie każdego showu stoją zwykle dwa foldery, <code>assets/</code> i <code>shots/</code>, a każda ścieżka w dalszej części drzewa jednoznacznie mówi, w której gałęzi się znajdujesz.</p>
+
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:13px;line-height:1.7;color:var(--text);">show/DEMO/
+├── assets/
+│   └── character/
+│       └── hero_char/
+│           ├── model/{work,publish}/
+│           ├── rig/{work,publish}/
+│           └── surfacing/{work,publish}/
+└── shots/
+    └── seq010/
+        └── shot0100/
+            ├── layout/{work,publish}/
+            ├── anim/{work,publish}/
+            ├── fx/{work,publish}/
+            ├── lighting/{work,publish}/
+            └── comp/{work,publish}/</pre>
+    </div>
+
+    <p>Zauważ dwa powtarzające się wzorce. Po pierwsze, każdy task (Rozdział 2) — <code>model</code>, <code>rig</code>, <code>lighting</code> i tak dalej — dostaje własny podfolder, niezależnie od tego, czy siedzi pod assetem, czy pod shotem. Po drugie, każdy z tych folderów dzieli się dalej na <code>work/</code> i <code>publish/</code> — dokładnie granicę z Rozdziału 1, tylko zapisaną fizycznie jako dwa różne miejsca na dysku, a nie jako coś, co trzeba pamiętać. Plik w <code>work/</code> może wyglądać jak popadnie — to prywatny warsztat artysty. Plik w <code>publish/</code> podlega już sztywnym regułom, które zaraz opiszemy.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Konwencja nazewnictwa</div>
+    <h2>Nazwa pliku jako zapis kontekstu</h2>
+    <p>Sama struktura katalogów mówi, w jakim jesteś miejscu, ale plik zwykle wędruje dalej — trafia do renderu, do innego programu, czasem kopiowany jest poza swój folder macierzysty. Dlatego nazwa samego pliku musi nieść te same informacje, co ścieżka, w skróconej, ale wciąż jednoznacznej formie:</p>
+
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:13px;line-height:1.7;color:var(--amber);">DEMO_seq010_shot0100_lighting_beauty_v012.exr
+DEMO_hero_char_rig_v034.mb</pre>
+    </div>
+
+    <p>Każdy fragment nazwy, oddzielony podkreślnikiem, odpowiada jednemu, konkretnemu polu kontekstu — showowi, shotowi lub assetowi, taskowi, opcjonalnie opisowi (<code>beauty</code> jako nazwa passu renderu) i na końcu zawsze numerowi wersji. Trzy zasady sprawiają, że to działa niezawodnie w praktyce:</p>
+    <ul class="compact">
+      <li><strong>Wersja jest zawsze liczbą, zawsze z zerami wiodącymi</strong> (<code>v001</code>, nie <code>v1</code>) — dzięki temu sortowanie alfabetyczne w dowolnym systemie plików pokrywa się z kolejnością chronologiczną, nawet przy stu wersjach.</li>
+      <li><strong>Żadnego wolnego tekstu w miejscu, gdzie powinno być pole</strong> — <code>_fix</code>, <code>_FINAL</code> czy <code>_poprawiony_naprawde</code> to dokładnie ten sam błąd co w Rozdziale 1, tylko schowany w środku „porządnej" konwencji.</li>
+      <li><strong>Zawsze małe litery, zawsze podkreślniki zamiast spacji</strong> — nie dlatego, że wielkie litery wyglądają gorzej, tylko dlatego, że render farma (Rozdział 19) często łączy stacje robocze z Windows, gdzie system plików nie rozróżnia wielkości liter, z maszynami linuksowymi, gdzie rozróżnia. Plik zapisany jako <code>Hero_Char.mb</code> i odczytywany jako <code>hero_char.mb</code> na dwóch różnych maszynach to prawdziwa, udokumentowana kategoria awarii w tej branży.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dlaczego to musi dać się sparsować</div>
+    <h2>Konwencja jest dla skryptu, nie tylko dla oka</h2>
+    <p>Tu dochodzimy do sedna, dlaczego ten rozdział w ogóle zasługuje na tyle uwagi. Gdyby chodziło tylko o czytelność dla człowieka, luźniejsza konwencja by wystarczyła — ludzie radzą sobie z niejednoznacznością. Narzędzia pipeline'u, które poznasz w Części V tej książki, nie radzą sobie z nią wcale. Skrypt publikujący nową wersję pliku musi automatycznie odczytać z bieżącej ścieżki, jaki to show, jaki shot i jaki task, żeby wiedzieć, gdzie zapisać wynik i pod jaką nazwą — a potem znaleźć najwyższy istniejący numer wersji w folderze <code>publish/</code>, żeby nadać kolejny. Jeśli choć jeden plik w tym folderze łamie konwencję, taki skrypt albo się wywali, albo — gorzej — cicho przypisze złą wersję.</p>
+    <p>W większych studiach ta konwencja bywa zapisana nie jako dokument czy nawyk zespołu, tylko jako dosłowny szablon w konfiguracji pipeline'u — coś w rodzaju wzorca <code>{show}/shots/{sequence}/{shot}/{task}/{version}/{filename}</code>, z którego narzędzia generują ścieżki automatycznie, zamiast polegać na tym, że ktoś je poprawnie wpisze ręcznie. Dzięki temu zmiana konwencji w połowie produkcji — rzadka, ale zdarza się — oznacza edycję jednego pliku konfiguracyjnego, a nie ręczne poprawianie tysięcy już zapisanych ścieżek.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Konwencja nazewnictwa</dt>
+      <dd>Sztywny, ustalony z góry wzorzec nazw plików i ścieżek, możliwy do automatycznego sparsowania.</dd>
+      <dt>work / publish</dt>
+      <dd>Podział folderu taska na przestrzeń roboczą artysty i przestrzeń wersji zatwierdzonych — patrz Rozdział 7.</dd>
+      <dt>Wersja (v001, v002…)</dt>
+      <dd>Zero-padded numer porządkowy kolejnych zapisów tego samego kontekstu — nigdy data, nigdy opis słowny.</dd>
+      <dt>Szablon ścieżki</dt>
+      <dd>Wzorzec, z którego narzędzia pipeline'u generują konkretne ścieżki, zamiast polegać na ręcznym wpisywaniu.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Struktura katalogów i konwencja nazw rozwiązują, <em>gdzie</em> leży plik. Nie rozwiązują jeszcze pytania, co się dzieje, gdy dwie osoby chcą zmienić tę samą scenę tego samego dnia. Następny rozdział pokazuje, dlaczego intuicyjna odpowiedź — „użyjmy Gita, tak jak programiści" — nie działa dla plików, z jakimi pracuje VFX.</p>
   </div>
 
 <div class="site-nav chapter-nav">

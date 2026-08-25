@@ -12,16 +12,81 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 06/22</span><span>CZĘŚĆ · II</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DEPOT · //DEMO</span><span>CHANGELIST · 4471</span><span>PLIK · hero_char_rig.mb</span><span>LOCK · A. Kowalska</span>
   </div>
 
   <div class="eyebrow">Rozdział 6 / Dane i wersje</div>
   <h1>Perforce i wersjonowanie danych produkcyjnych</h1>
   <p class="subtitle">System, o którym artysta rzadko słyszy z nazwy, a używa go codziennie — checkout, submit i blokowanie plików binarnych na poziomie całego studia.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Perforce trzyma jedno, centralne miejsce prawdy (depot) i pozwala pobrać tylko fragment, którego akurat potrzebujesz — bez ściągania całej historii całego showu, jak zrobiłby to Git.</li>
+      <li>Model checkout/submit blokuje plik na czas edycji zamiast próbować łączyć zmiany po fakcie — bezpośrednia odpowiedź na problem z Rozdziału 5.</li>
+      <li>Większość artystów nigdy nie widzi Perforce z nazwy — pipeline owija go w przyciski „Save" i „Publish" w narzędziach DCC, więc blokowanie i wersjonowanie dzieją się niezauważalnie, w tle.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Poprzedni rozdział zostawił nas z jasną diagnozą: pliki binarne potrzebują blokady, nie scalania. Perforce (formalnie Helix Core) to system kontroli wersji zbudowany dokładnie wokół tego założenia — i choć rzadko pojawia się w rozmowach o „nowoczesnych" narzędziach deweloperskich, jest ciągle domyślnym wyborem do wersjonowania danych produkcyjnych w zdecydowanej większości dużych studiów VFX i gier.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Depot i workspace</div>
+    <h2>Jedno centralne miejsce, częściowa kopia lokalna</h2>
+    <p>Tam, gdzie Git jest rozproszony — każdy klon repozytorium zawiera pełną historię — Perforce jest scentralizowany. Istnieje jeden <span class="term-amber">depot</span>, serwer będący jedynym źródłem prawdy dla całej historii wszystkich plików produkcji. Artysta nigdy nie ma u siebie pełnej kopii depota; zamiast tego ma <span class="term-cyan">workspace</span> (czasem nazywany „client") — mapowanie, które mówi, jaki fragment depota i w jakim miejscu na lokalnym dysku ma być widoczny.</p>
+    <p>To rozróżnienie ma bezpośrednie konsekwencje przy skali, o jakiej mówimy w VFX. Riger potrzebuje lokalnie tylko assetów, nad którymi akurat pracuje — nie całej historii wszystkich wersji wszystkich tekstur w produkcji, która może ważyć dziesiątki terabajtów. Perforce pozwala zsynchronizować („p4 sync") dokładnie ten wycinek depota, którego workspace w danej chwili potrzebuje, i nic więcej.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Checkout, edit, submit</div>
+    <h2>Trzy kroki, które zastępują merge</h2>
+    <p>Praca z plikiem w Perforce trzyma się zawsze tego samego rytmu. Zanim zaczniesz edytować, jawnie <span class="term-violet">wypisujesz</span> plik (checkout) — to moment, w którym serwer, jeśli plik jest oznaczony jako „exclusive", blokuje go dla wszystkich innych użytkowników. Edytujesz w swoim programie DCC jak zwykle. Kiedy skończysz, <span class="term-amber">wpisujesz</span> zmianę z powrotem (submit) — plik trafia do depota jako nowa wersja, a blokada znika.</p>
+    <p>Zmiany grupuje się w <span class="term-cyan">changelisty</span> — jeden changelist może obejmować kilka powiązanych plików (np. plik sceny i towarzyszący mu plik cache'u), które trafiają do depota razem, atomowo, jako jedno zdarzenie w historii. To odpowiednik commita w Gicie, tylko opisujący zestaw plików, które mają sens wyłącznie razem.</p>
+
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:12.5px;line-height:2;color:var(--text);">CZAS   ARTYSTA A                ARTYSTA B                STATUS: hero_char_rig.mb
+09:00  p4 checkout                                        <span style="color:var(--amber);">zablokowany przez A</span>
+09:15                            p4 checkout               <span style="color:#e0655f;">odrzucone — plik zajęty</span>
+09:40  edytuje w Mayi
+10:05  p4 submit → v034                                    <span style="color:var(--cyan);">odblokowany, nowa wersja</span>
+10:06                            p4 checkout                <span style="color:var(--amber);">zablokowany przez B</span></pre>
+    </div>
+    <p>Artysta B nie traci pracy ani nie dostaje nierozwiązywalnego konfliktu — po prostu wie od razu, o 9:15, że musi poczekać, zamiast dowiedzieć się o kolizji dopiero po fakcie, tak jak w scenariuszu z Rozdziału 1.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Blokada zamiast scalenia</div>
+    <h2>Dlaczego to jest właściwy kompromis</h2>
+    <p>Blokada wyłączna jest z natury mniej elastyczna niż merge — dwie osoby nie mogą pracować nad tym samym plikiem równolegle, nawet jeśli w teorii ich zmiany by się nie pokrywały. To jednak świadomy kompromis: skoro (Rozdział 5) nie da się automatycznie ustalić, czy zmiany w dwóch wersjach pliku Mayi faktycznie kolidują, jedyną opcją, która nigdy nie prowadzi do cichej utraty pracy, jest niedopuszczenie do równoległej edycji w ogóle. Perforce pozwala też oznaczać pliki jako niewymagające blokady (np. proste, niewielkie pliki tekstowe konfiguracji, które da się scalić ręcznie) — ale dla właściwych danych produkcyjnych: scen, cache'y, tekstur, blokada wyłączna jest ustawieniem domyślnym nie bez powodu.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Niewidoczny dla artysty</div>
+    <h2>Nikt nie wpisuje "p4 checkout" ręcznie</h2>
+    <p>W praktyce zdecydowana większość artystów nigdy nie otwiera wiersza poleceń Perforce ani nawet jego graficznego klienta. Narzędzia pipeline'u (Część V tej książki) owijają te operacje w przycisk „Save" w Mayi czy „Publish" w Nuke — kliknięcie przycisku po cichu wykonuje checkout, zapis, submit i aktualizację statusu w systemie śledzenia produkcji (Rozdział 8) w jednym kroku. To jeden z najlepszych przykładów tego, czym pipeline naprawdę jest: nie kolejnym programem do nauczenia się, tylko warstwą, która chowa złożoność systemu takiego jak Perforce za interfejsem, którego artysta już używa.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Depot</dt>
+      <dd>Centralny serwer Perforce, jedyne źródło prawdy dla historii wszystkich wersjonowanych plików.</dd>
+      <dt>Workspace (client)</dt>
+      <dd>Mapowanie fragmentu depota na lokalny dysk konkretnego użytkownika.</dd>
+      <dt>Checkout</dt>
+      <dd>Jawne oznaczenie pliku jako edytowanego, blokujące go dla innych, jeśli jest typu exclusive.</dd>
+      <dt>Submit</dt>
+      <dd>Zapisanie zmiany z powrotem do depota jako nowej wersji i zdjęcie blokady.</dd>
+      <dt>Changelist</dt>
+      <dd>Grupa powiązanych zmian plików, zatwierdzana do depota atomowo, jednym zdarzeniem.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Perforce mówi, jak bezpiecznie zapisać nową wersję pliku. Nie mówi jeszcze, która z tych wersji jest tą, z której wolno korzystać innym działom. Następny rozdział definiuje dokładnie tę granicę — publish.</p>
   </div>
 
 <div class="site-nav chapter-nav">

@@ -12,16 +12,83 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 05/22</span><span>CZĘŚĆ · II</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>PLIK · hero_char.mb</span><span>ROZMIAR · 2.8 GB</span><span>DIFF · niedostępny</span>
   </div>
 
   <div class="eyebrow">Rozdział 5 / Dane i wersje</div>
   <h1>Dlaczego Git nie wystarcza do plików VFX</h1>
   <p class="subtitle">Git świetnie radzi sobie z tekstem i różnicami linia po linii. Plik Maya na dwa gigabajty tego nie ma — i to jedna z tych rzeczy, które łamią intuicję programisty wchodzącego do VFX.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Git został zaprojektowany do tekstu — kodu źródłowego, gdzie zmiana to policzalna różnica linii, a dwie osoby mogą tę różnicę bezpiecznie połączyć.</li>
+      <li>Plik Maya, cache Alembica czy tekstura 4K to nieprzezroczysty blob binarny — Git nie potrafi go zdiffować ani zmergować, tylko zapisać jako całość przy każdej zmianie.</li>
+      <li>To nie jest wada Gita, tylko niedopasowanie modelu do problemu — VFX potrzebuje czegoś, co blokuje plik na czas edycji, zamiast próbować łączyć zmiany po fakcie (Rozdział 6).</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Programista, który trafia do VFX, zwykle zadaje to samo pytanie: skoro Git tak dobrze sprawdza się w kodzie, dlaczego cała branża nie wersjonuje nim po prostu wszystkiego? Odpowiedź nie jest oczywista, dopóki nie zrozumiesz, na jakim założeniu Git w ogóle stoi — i dlaczego pliki, z którymi pracuje modelarka czy artysta FX, to założenie łamią niemal natychmiast.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Jak Git w ogóle działa</div>
+    <h2>Różnica linii, nie kopia całości</h2>
+    <p>Git został zbudowany wokół jednej idei: zmiana w pliku tekstowym da się zapisać jako różnica — które linie zniknęły, które się pojawiły. Kiedy dwie osoby edytują ten sam plik kodu w różnych miejscach, Git potrafi automatycznie połączyć obie zmiany w jeden, spójny wynik — to właśnie <em>merge</em>. Do tego każdy, kto sklonuje repozytorium, dostaje pełną historię wszystkich zmian od początku istnienia projektu, przechowywaną lokalnie — stąd określenie „system rozproszony".</p>
+
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:13px;line-height:1.9;"><span style="color:var(--text-dim);">  specularRoughness = 0.4</span>
+<span style="color:#e0655f;">- ambientColor = 0.2</span>
+<span style="color:#5fbf7a;">+ ambientColor = 0.35</span>
+<span style="color:var(--text-dim);">  refractionIndex = 1.5</span></pre>
+    </div>
+    <p>To działa bez zarzutu, dopóki plik jest tekstem — kodem źródłowym narzędzia, plikiem konfiguracyjnym, configiem OpenColorIO z Rozdziału 12. Git widzi każdą linię z osobna, wie dokładnie, co się zmieniło, i potrafi to zmienione miejsce wskazać.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Co się psuje na plikach binarnych</div>
+    <h2>Blob, którego nie da się otworzyć jako tekst</h2>
+    <p>Plik sceny Maya, cache Alembica czy plik tekstury nie są zapisane jako linie, które można porównać. To formaty binarne — ciągi bajtów o wewnętrznej strukturze zrozumiałej tylko dla programu, który je stworzył. Dla Gita dwie wersje takiego pliku wyglądają tak:</p>
+
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:13px;line-height:1.9;color:var(--text-dim);">hero_char_v1.mb  →  2 847 391 kB — zmieniło się: <span style="color:var(--amber);">nieznane (format binarny)</span>
+hero_char_v2.mb  →  2 851 022 kB — zmieniło się: <span style="color:var(--amber);">nieznane (format binarny)</span></pre>
+    </div>
+
+    <p>Git nie ma sposobu, żeby powiedzieć „zmieniła się tylko pozycja jednego palca lewej dłoni". Widzi dwa całkowicie różne bloby i przy każdym commicie zapisuje kolejną, pełną kopię całego pliku. To ma dwie poważne konsekwencje. Po pierwsze — brak mergowania: jeśli riger i modelarka oboje otworzą <code>hero_char.mb</code>, oboje wprowadzą zmiany i oboje spróbują je zapisać, Git nie potrafi połączyć ich pracy tak, jak łączy dwie linie kodu. Ktoś commituje jako drugi i albo nadpisuje pracę pierwszej osoby, albo dostaje nierozwiązywalny konflikt na pliku, którego nie da się otworzyć w edytorze tekstu, żeby ręcznie zdecydować, co zostaje. Po drugie — koszt miejsca: skoro każda wersja to pełna kopia, historia repozytorium rośnie liniowo z liczbą wersji razy rozmiar pliku, bez żadnej z korzyści kompresji różnicowej, na której Git buduje swoją reputację przy kodzie.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Problem skali</div>
+    <h2>Git LFS łata jedną dziurę, nie obie</h2>
+    <p>Rozwiązaniem, o którym słyszy większość programistów wchodzących do branży, jest Git LFS (Large File Storage) — rozszerzenie, które trzyma duże pliki binarne na osobnym serwerze, a w samym repozytorium zostawia tylko lekki wskaźnik. To realnie rozwiązuje problem rozmiaru repozytorium: klonowanie projektu nie ściąga już całej historii każdej wersji każdej tekstury. Nie rozwiązuje jednak drugiego problemu — modelu współpracy. Git LFS wciąż zakłada mergowanie i wciąż nie potrafi połączyć dwóch wersji pliku Mayi w jedną. Dwoje artystów pracujących nad tym samym plikiem tego samego dnia wciąż kończy z tym samym konfliktem, tylko przechowywanym gdzie indziej.</p>
+    <p>Do tego dochodzi coś, czego programista rzadko doświadcza: w VFX historia wersji nie jest archiwum, do którego zagląda się sporadycznie — to aktywna, codzienna przestrzeń robocza. Artysta chce mieć natychmiastowy dostęp do dowolnej wcześniejszej wersji swojego pliku, bez czekania na pobranie jej z zewnętrznego magazynu, i chce mieć absolutną pewność, że w danej chwili tylko on edytuje dany plik — nie dowiedzieć się o tym po fakcie, porównując dwa nieczytelne bloby.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Czego więc potrzeba</div>
+    <h2>Model blokady zamiast modelu mergowania</h2>
+    <p>Skoro nie da się bezpiecznie łączyć zmian w plikach binarnych, jedynym niezawodnym rozwiązaniem jest niedopuszczenie do sytuacji, w której dwie osoby edytują ten sam plik naraz — nie naprawiać konflikt po fakcie, tylko uniemożliwić go z góry. To dokładnie model, wokół którego zbudowany jest Perforce: zanim zaczniesz edytować plik, jawnie go „wypisujesz" (checkout), co blokuje go dla wszystkich innych, aż go z powrotem „wpiszesz" (submit). To rozwiązanie mniej eleganckie niż automatyczny merge Gita, ale za to dopasowane do plików, których po prostu nie da się połączyć. Poznasz je dokładnie w następnym rozdziale — razem z odpowiedzią na pytanie, dlaczego to wcale nie oznacza, że Git jest w VFX bezużyteczny (bo do kodu samego pipeline'u wraca w Rozdziale 9).</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Diff (różnica)</dt>
+      <dd>Zapis tego, co dokładnie zmieniło się między dwiema wersjami pliku — działa niezawodnie tylko dla tekstu.</dd>
+      <dt>Merge (scalenie)</dt>
+      <dd>Automatyczne połączenie dwóch niezależnych zestawów zmian w jeden, spójny wynik.</dd>
+      <dt>Blob binarny</dt>
+      <dd>Plik przechowywany jako nieprzezroczysty ciąg bajtów — bez wewnętrznej struktury czytelnej dla narzędzia wersjonującego.</dd>
+      <dt>Git LFS</dt>
+      <dd>Rozszerzenie Gita przechowujące duże pliki poza głównym repozytorium; rozwiązuje problem rozmiaru, nie rozwiązuje problemu równoczesnej edycji.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Następny rozdział pokazuje system zbudowany od podstaw pod dokładnie ten problem — Perforce, z jego modelem checkout/submit i blokowaniem plików, który od dekad jest domyślnym wyborem dla danych produkcyjnych w dużych studiach.</p>
   </div>
 
 <div class="site-nav chapter-nav">
