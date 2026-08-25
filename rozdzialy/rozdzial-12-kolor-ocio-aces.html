@@ -12,16 +12,94 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 12/22</span><span>CZĘŚĆ · IV</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>OCIO · config_v3.ocio</span><span>ROLE · scene_linear</span><span>DISPLAY · sRGB / DCI-P3 / Rec.709</span>
   </div>
 
   <div class="eyebrow">Rozdział 12 / Wymiana danych</div>
   <h1>Kolor w pipeline: OpenColorIO i ACES od kuchni</h1>
   <p class="subtitle">Ten sam plik tekstury musi wyglądać identycznie w Mayi, Nuke i na sali projekcyjnej — to zadanie jednego configu, nie trzech osobnych ustawień.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>OpenColorIO to jeden, wspólny plik konfiguracyjny definiujący nazwane przestrzenie kolorów i transformacje między nimi — każde narzędzie w pipeline odpytuje ten sam config, zamiast mieć własne, niezależne ustawienia.</li>
+      <li>Role (jak <code>scene_linear</code> czy <code>default</code>) pozwalają wybierać przestrzeń kolorów po przeznaczeniu, nie po dokładnej nazwie — dzięki temu sam config może się różnić między produkcjami bez zmiany niczego w narzędziach.</li>
+      <li>ACES to konkretny, ustandaryzowany schemat zbudowany na tej samej idei, tym razem między studiami — żeby render czy zdjęcie z jednego miejsca dało się bez niespodzianek otworzyć w drugim.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Tekstura, którą teksturzysta widzi w Mayi, artysta FX ładuje w Houdinim, a kompozytor otwiera w Nuke, powinna wyglądać wszędzie tak samo — a bez żadnej koordynacji nie wygląda. Każdy z tych programów ma inne domyślne założenia o tym, jak interpretować wartości pikseli: czy plik jest zapisany w przestrzeni sRGB, czy liniowo, czy w logarytmicznym kodowaniu kamery filmowej. Bez wspólnego mechanizmu każdy program zgaduje inaczej, a „ten sam" kolor zmienia się w zależności od tego, gdzie akurat na niego patrzysz.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Jeden config, wiele narzędzi</div>
+    <h2>OpenColorIO jako wspólne źródło prawdy</h2>
+    <p><span class="term-amber">OpenColorIO</span> (OCIO) to otwarta biblioteka i format konfiguracji, który definiuje nazwane przestrzenie kolorów oraz dokładne transformacje matematyczne między nimi — i robi to raz, w jednym pliku, do którego odwołuje się każde narzędzie w studiu: Maya, Houdini, Nuke, Katana, przeglądarki takie jak RV, a nawet render farma. To dokładnie ta sama logika, co konwencja nazewnictwa z Rozdziału 4 — zamiast każdego artysty i każdego narzędzia interpretującego kolor po swojemu, istnieje jeden, sztywny wzorzec, który wszyscy odpytują.</p>
+    <p>Zamiast każdego artysty wybierającego przestrzeń kolorów po dokładnej nazwie, OCIO wprowadza <span class="term-cyan">role</span> — etykiety opisujące przeznaczenie, nie konkretny standard: <code>scene_linear</code> (przestrzeń, w której powinno się liczyć oświetlenie), <code>color_picking</code> (przestrzeń, w której wygodnie dobiera się kolor na oko), <code>default</code> (domyślna interpretacja nowego pliku). Narzędzie pyta o rolę, nie o nazwę — dzięki temu dwie różne produkcje mogą mieć zupełnie różne configi, z inaczej nazwanymi przestrzeniami kolorów, a te same przyciski w interfejsie Mayi wciąż będą robić to, co powinny.</p>
+
+    <div class="diagram-frame">
+      <div class="diagram-hud"><span>OCIO.config</span><span>Jeden plik, spójny wygląd wszędzie</span></div>
+      <svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrOcio" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+          </marker>
+        </defs>
+        <rect x="270" y="96" width="160" height="56" rx="8" fill="#20242c" stroke="#e8a33d" stroke-width="1.5"/>
+        <text x="350" y="120" text-anchor="middle" font-family="IBM Plex Sans" font-size="12.5" fill="#ecebe4" font-weight="600">config.ocio</text>
+        <text x="350" y="138" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">jeden plik, cały show</text>
+
+        <g font-family="IBM Plex Sans" font-size="11.5" fill="#ecebe4">
+          <rect x="20" y="20" width="150" height="42" rx="7" fill="#20242c" stroke="#6e93be" stroke-opacity="0.7"/>
+          <text x="95" y="46" text-anchor="middle">Maya — viewport</text>
+          <rect x="20" y="180" width="150" height="42" rx="7" fill="#20242c" stroke="#6e93be" stroke-opacity="0.7"/>
+          <text x="95" y="206" text-anchor="middle">Nuke — comp</text>
+          <rect x="530" y="20" width="150" height="42" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.7"/>
+          <text x="605" y="46" text-anchor="middle">Render farma</text>
+          <rect x="530" y="180" width="150" height="42" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.7"/>
+          <text x="605" y="206" text-anchor="middle">Sala projekcyjna</text>
+        </g>
+        <line x1="170" y1="41" x2="268" y2="105" stroke="#e8a33d" stroke-width="1.5" marker-end="url(#arrOcio)"/>
+        <line x1="170" y1="201" x2="268" y2="140" stroke="#e8a33d" stroke-width="1.5" marker-end="url(#arrOcio)"/>
+        <line x1="530" y1="41" x2="432" y2="105" stroke="#e8a33d" stroke-width="1.5" marker-end="url(#arrOcio)"/>
+        <line x1="530" y1="201" x2="432" y2="140" stroke="#e8a33d" stroke-width="1.5" marker-end="url(#arrOcio)"/>
+      </svg>
+      <div class="diagram-caption">Każde narzędzie odpytuje ten sam config — inny display transform na końcu, ta sama matematyka u źródła.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: ACES — ten sam pomysł między studiami</div>
+    <h2>Kiedy wspólny język potrzebny jest nie tylko w jednym budynku</h2>
+    <p>OCIO rozwiązuje spójność kolorów w obrębie jednego studia. <span class="term-violet">ACES</span> (Academy Color Encoding System) rozwiązuje ten sam problem o poziom wyżej — między studiami, kamerami i vendorami. To ustandaryzowany przez Akademię Filmową zestaw przestrzeni kolorów i transformacji, zaprojektowany tak, żeby materiał z dowolnej kamery filmowej i render z dowolnego studia dało się połączyć bez niespodzianek, a finalny obraz przenieść między kinem, telewizją HDR i internetem bez ręcznego przeliczania za każdym razem od nowa. W praktyce ACES bywa dostarczany właśnie jako gotowy config OCIO — konkretny, w pełni wypełniony wzorzec tego, co w poprzedniej sekcji było ogólnym mechanizmem. Jeśli interesuje Cię matematyka stojąca za samym ACES — przestrzenie AP0/AP1, RRT i ODT — pełny wykład na ten temat prowadzi osobna książka tego autora o ray tracingu; tutaj w Dodatku D skupiamy się na architekturze samego configu, nie na radiometrii, którą opisuje.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dystrybucja configu</div>
+    <h2>Jeden plik, ta sama wersja na każdej maszynie</h2>
+    <p>Config OCIO trafia do każdej stacji roboczej i każdego węzła render farmy dokładnie tym samym mechanizmem, co pinowanie wersji narzędzi z Rozdziału 9 — jako część środowiska, które Rozdział 17 opisze szczegółowo, zwykle wskazywana przez zmienną środowiskową w rodzaju <code>OCIO</code>, ustawianą automatycznie przy starcie każdej aplikacji. Zmiana configu w połowie produkcji to poważna decyzja — może subtelnie przesunąć wygląd każdego już zatwierdzonego shotu — dlatego config, tak jak kod pipeline'u, bywa wersjonowany i przypinany do konkretnego showu, nie aktualizowany swobodnie w dowolnym momencie.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Colorspace (przestrzeń kolorów)</dt>
+      <dd>Konkretny sposób interpretacji wartości liczbowych piksela jako koloru.</dd>
+      <dt>OpenColorIO (OCIO)</dt>
+      <dd>Otwarta biblioteka i format configu definiujący wspólne przestrzenie kolorów dla całego pipeline'u.</dd>
+      <dt>Role</dt>
+      <dd>Etykieta opisująca przeznaczenie przestrzeni kolorów (np. scene_linear), niezależna od jej dokładnej nazwy.</dd>
+      <dt>Display transform</dt>
+      <dd>Ostateczne przekształcenie obrazu pod konkretny ekran lub projektor odbiorcy.</dd>
+      <dt>ACES</dt>
+      <dd>Ustandaryzowany przez Akademię Filmową schemat przestrzeni kolorów do wymiany materiału między studiami.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Kolor to jedna warstwa informacji niesiona przez plik obrazu. Następny rozdział pokazuje, ile innych warstw potrafi zmieścić pojedynczy plik OpenEXR — i dlaczego kompozytor dostaje od lightingu znacznie więcej niż gotowy, płaski obrazek.</p>
   </div>
 
 <div class="site-nav chapter-nav">
