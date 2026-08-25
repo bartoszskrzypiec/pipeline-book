@@ -12,16 +12,88 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 20/22</span><span>CZĘŚĆ · VI</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>STORAGE · shared, ~2.4 PB</span><span>WĘZŁÓW CZYTAJĄCYCH · 480</span><span>WĄSKIE GARDŁO · I/O</span>
   </div>
 
   <div class="eyebrow">Rozdział 20 / Skalowanie</div>
   <h1>Storage i cache: dlaczego dysk potrafi być wolniejszy niż render</h1>
   <p class="subtitle">Petabajty danych i tysiąc maszyn czytających jednocześnie — architektura, w której najdroższym zasobem bywa nie moc obliczeniowa, tylko przepustowość do dysku.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Setki maszyn farmy czytają jednocześnie te same opublikowane dane z jednego, współdzielonego storage'u, który nigdy nie był pomyślany jako dysk pojedynczego komputera.</li>
+      <li>Render bywa w praktyce ograniczony nie mocą obliczeniową, tylko przepustowością do dysku — maszyna czeka na dane szybciej, niż zdąży je policzyć.</li>
+      <li>Cache lokalny na węźle, proxy w niskiej rozdzielczości do pracy interaktywnej i warstwy storage'u o różnym koszcie i szybkości to trzy niezależne sposoby na zmniejszenie tego obciążenia.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 19 podzielił render na setki niezależnych zadań, licząc się równolegle na osobnych maszynach. Każda z tych maszyn potrzebuje tych samych danych źródłowych — opublikowanej geometrii z Rozdziału 6, tekstur, cache'y Alembic z Rozdziału 10. Skoro wszystkie czytają je z jednego, wspólnego miejsca w tym samym momencie, samo miejsce przechowywania danych staje się częścią infrastruktury, o którą trzeba zadbać równie starannie, co o samą moc obliczeniową farmy.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Współdzielony storage jako wąskie gardło</div>
+    <h2>I/O bound, nie compute bound</h2>
+    <p>Depot Perforce z Rozdziału 6 i opublikowane assety nie mieszkają na dysku żadnej pojedynczej maszyny — leżą na dedykowanym, współdzielonym storage'u o wysokiej przepustowości, dostępnym jednocześnie dla każdej stacji roboczej i każdego węzła farmy. Problem pojawia się przy skali: setki maszyn odczytujących naraz te same duże pliki potrafią nasycić nawet bardzo szybkie łącze sieciowe. W praktyce oznacza to, że render bywa <span class="term-amber">I/O bound</span>, nie <span class="term-cyan">compute bound</span> — maszyna kończy liczenie klatki szybciej, niż zdążyła wczytać wszystkie potrzebne jej dane, i spędza więcej czasu na czekaniu niż na samym liczeniu.</p>
+
+    <div class="diagram-frame">
+      <div class="diagram-hud"><span>Storage.load</span><span>Wiele maszyn, jedno źródło</span></div>
+      <svg viewBox="0 0 700 190" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrIo" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6e93be"/>
+          </marker>
+        </defs>
+        <g fill="#20242c" stroke="#6e93be" stroke-opacity="0.75">
+          <rect x="20" y="16" width="34" height="30" rx="4"/><rect x="64" y="16" width="34" height="30" rx="4"/><rect x="108" y="16" width="34" height="30" rx="4"/>
+          <rect x="20" y="54" width="34" height="30" rx="4"/><rect x="64" y="54" width="34" height="30" rx="4"/><rect x="108" y="54" width="34" height="30" rx="4"/>
+          <rect x="20" y="92" width="34" height="30" rx="4"/><rect x="64" y="92" width="34" height="30" rx="4"/><rect x="108" y="92" width="34" height="30" rx="4"/>
+          <rect x="20" y="130" width="34" height="30" rx="4"/><rect x="64" y="130" width="34" height="30" rx="4"/><rect x="108" y="130" width="34" height="30" rx="4"/>
+        </g>
+        <text x="70" y="176" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">setki węzłów farmy</text>
+
+        <line x1="150" y1="90" x2="290" y2="90" stroke="#6e93be" stroke-width="2" marker-end="url(#arrIo)"/>
+        <text x="220" y="78" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#6e93be">jednoczesne odczyty</text>
+
+        <rect x="300" y="50" width="200" height="80" rx="10" fill="#20242c" stroke="#e8a33d" stroke-width="1.5"/>
+        <text x="400" y="85" text-anchor="middle" font-family="IBM Plex Sans" font-size="13" font-weight="600" fill="#ecebe4">Współdzielony storage</text>
+        <text x="400" y="105" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">jedno źródło prawdy</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Cache i proxy zamiast pełnych danych za każdym razem</div>
+    <h2>Nie czytaj dwa razy tego, co już masz</h2>
+    <p>Dwie niezależne strategie zmniejszają to obciążenie, zamiast próbować je wytrzymać siłą. Pierwsza to <span class="term-violet">cache lokalny</span>: węzeł farmy, który raz przeczytał daną teksturę czy geometrię, trzyma jej kopię na własnym, szybkim dysku lokalnym, więc kolejne zadanie na tej samej maszynie nie odpytuje sieci ponownie. Druga to <span class="term-amber">proxy</span> — lekka, uboższa wersja danych (tekstura w niskiej rozdzielczości, uproszczona geometria) używana do pracy interaktywnej, podczas gdy pełne dane wczytywane są dopiero na etapie finalnego renderu. To dokładnie ta sama zasada leniwego wczytywania (payload), którą Rozdział 11 pokazał przy USD — odłóż koszt odczytu ciężkich danych na moment, w którym są naprawdę potrzebne, nie wcześniej.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Nie każdy plik zasługuje na ten sam dysk</div>
+    <h2>Warstwy storage'u: gorące i zimne dane</h2>
+    <p>Dane aktywnego showu, używane codziennie przez setki maszyn, leżą na najszybszym i najdroższym storage'u, jaki studio posiada. Show, który zakończył produkcję miesiąc temu, nie potrzebuje już tej samej przepustowości — jego dane migrują na tańszy, wolniejszy storage archiwalny, czasem nawet na taśmy. Ta hierarchia (tiering) nie jest szczegółem technicznym bez znaczenia dla artysty — to powód, dla którego otwarcie starego shotu z zakończonej produkcji bywa zauważalnie wolniejsze niż praca nad czymś, co jest w toku teraz.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>I/O bound</dt>
+      <dd>Sytuacja, w której czas wykonania ogranicza szybkość odczytu/zapisu danych, nie moc obliczeniowa.</dd>
+      <dt>Shared storage (storage współdzielony)</dt>
+      <dd>Dedykowana infrastruktura przechowywania danych dostępna jednocześnie dla wielu maszyn.</dd>
+      <dt>Cache lokalny</dt>
+      <dd>Kopia danych trzymana na dysku konkretnej maszyny, unikająca ponownego odczytu z sieci.</dd>
+      <dt>Proxy</dt>
+      <dd>Uboższa, lżejsza wersja danych używana do szybkiej, interaktywnej pracy.</dd>
+      <dt>Tiering</dt>
+      <dd>Podział danych na warstwy o różnym koszcie i szybkości, zależnie od tego, jak aktywnie są używane.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Część VI domyka temat skalowania. Ostatnia część książki wraca do ludzi — kim jest osoba, która buduje i utrzymuje to wszystko, i jak z nią współpracować, kiedy coś nie działa.</p>
   </div>
 
 <div class="site-nav chapter-nav">
