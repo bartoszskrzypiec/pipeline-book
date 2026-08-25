@@ -12,16 +12,43 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · U</span><span>EXT OF · Rozdział 3</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · U</span><span>ETAPY · capture → clean → retarget</span><span>EXT OF · Rozdział 3</span>
   </div>
 
-  <div class="eyebrow">Dodatek U / Głębiej</div>
+  <div class="eyebrow">Dodatek U / Głębiej: Mapa pipeline'u</div>
   <h1>Motion capture pipeline: od volumu do riga</h1>
-  <p class="subtitle">Aktor w garniturze z markerami to dopiero początek — dane z volumu przechodzą przez własny, osobny łańcuch czyszczenia i retargetingu, zanim trafią do riga postaci.</p>
+  <p class="subtitle">Aktor w garniturze z markerami to dopiero początek — dane z volumu przechodzą przez własny, osobny łańcuch czyszczenia i retargetingu, zanim w ogóle trafią do riga postaci.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Motion capture to nie gotowa animacja, tylko surowy, zaszumiony sygnał — pozycje markerów albo rotacje stawów w czasie — który musi przejść przez czyszczenie, zanim nada się do jakiegokolwiek użytku.</li>
+      <li>Retargeting mapuje ruch przechwycony na proporcjach aktora na zupełnie inny szkielet docelowej postaci — inaczej zbudowany, inaczej proporcjonowany, czasem w ogóle nie humanoidalny.</li>
+      <li>Po tych dwóch etapach dane mocap wchodzą do dokładnie tego samego miejsca w łańcuchu co zwykła, ręczna animacja z mapy z Rozdziału 3 — reszta pipeline'u nie musi wiedzieć, skąd pochodził ruch.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Mapa z Rozdziału 3 pokazała animację jako jeden etap potoku shotów, bez rozstrzygania, skąd bierze się ruch, który animator dostaje do pracy. Motion capture to jedna z dwóch głównych odpowiedzi na to pytanie (obok animacji w pełni ręcznej) — i wnosi ze sobą własny, poprzedzający wszystko inne łańcuch przetwarzania.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Surowy sygnał, nie gotowa animacja</div>
+    <h2>Volume rejestruje szum, nie ruch</h2>
+    <p>Aktor występujący w <span class="term-amber">volumie</span> — przestrzeni obudowanej kamerami śledzącymi markery na kostiumie, albo wyposażonej w kostium z czujnikami inercyjnymi — generuje strumień surowych danych: pozycje kilkudziesięciu markerów w przestrzeni (mocap optyczny) albo rotacje stawów w czasie (kostiumy inercyjne). Ten surowy sygnał jest z natury niedoskonały — markery znikają, gdy aktor się przed nimi zasłoni, dwa markery bywają przypadkowo zamienione miejscami, cały sygnał jest zaszumiony drganiem czujników. Zanim ktokolwiek zobaczy z tego cokolwiek przypominającego ruch postaci, dane przechodzą przez etap czyszczenia — ręcznego i zautomatyzowanego naprawiania luk, przypisywania z powrotem pogubionych etykiet, wygładzania szumu.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Retargeting</div>
+    <h2>Ruch aktora na szkielecie, który nigdy nie istniał</h2>
+    <p>Wyczyszczone dane wciąż opisują ruch szkieletu o proporcjach konkretnego aktora — nie postaci, którą ten ruch ma ostatecznie napędzać. <span class="term-cyan">Retargeting</span> mapuje ten ruch na rig docelowej postaci (Rozdział 3), zachowując intencję i charakter wykonania przy zupełnie innych proporcjach ciała — krótszych albo dłuższych kończynach, innej hierarchii szkieletu, czasem szkielecie w ogóle nie humanoidalnym. To zadanie samo w sobie bywa złożone technicznie: naiwne przeniesienie tych samych kątów rotacji na inny szkielet często daje efekt przenikania kończyn przez ciało albo utraty kontaktu stóp z podłożem, więc dobry retargeting koryguje te niedopasowania automatycznie, nie tylko kopiuje dane jeden do jednego.</p>
+    <p>Osobnym, równoległym łańcuchem bywa mocap twarzy — nagrywany zwykle kamerą zamontowaną na hełmie aktora, czyszczony i retargetowany niezależnie od ruchu ciała, na system blendshape'ów albo osobny rig twarzy postaci.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Powrót do głównego łańcucha</div>
+    <h2>Stąd pipeline nie widzi już różnicy</h2>
+    <p>Po czyszczeniu i retargetingu dane mocap trafiają dokładnie tam, gdzie mapa z Rozdziału 3 umieściła etap animacji — animator często dalej ręcznie dopracowuje ruch napędzany przez mocap, zanim uzna go za gotowy. Kiedy ta praca zostaje opublikowana (Rozdział 7), publikacja wygląda identycznie jak dla animacji w pełni ręcznej — cache Alembic albo warstwa USD, wersjonowana i konsumowana przez FX i lighting bez żadnej wiedzy o tym, czy źródłem ruchu był aktor w volumie, czy animator klatka po klatce.</p>
   </div>
 
 <div class="site-nav">
