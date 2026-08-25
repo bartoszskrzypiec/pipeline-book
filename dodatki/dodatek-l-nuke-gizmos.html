@@ -12,16 +12,37 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · L</span><span>EXT OF · Rozdział 15</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · L</span><span>NARZĘDZIA · szablon, grupa, gizmo</span><span>EXT OF · Rozdział 15</span>
   </div>
 
-  <div class="eyebrow">Dodatek L / Głębiej</div>
+  <div class="eyebrow">Dodatek L / Głębiej: Narzędzia</div>
   <h1>Nuke: gizmos, szablony i grupy w kompozytingu</h1>
   <p class="subtitle">Setka nodów kompozytingowych powtarzana w każdym shocie to błąd, nie praktyka — gizmo zamyka je w jednym, wersjonowanym bloku.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Szablon shotu (toolset) to punkt startowy skopiowany raz — poprawka w szablonie nie dociera automatycznie do shotów, które już z niego skorzystały.</li>
+      <li>Gizmo, w przeciwieństwie do szablonu, może wczytywać swoją definicję z jednego, centralnego pliku za każdym razem — poprawka w tym pliku aktualizuje każdy shot, który go używa, bez ręcznej interwencji.</li>
+      <li>To ten sam wzorzec pakowania złożoności co HDA w Houdinim (Dodatek K) — inny mechanizm, ten sam cel: prosty interfejs na zewnątrz, złożona sieć w środku.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 13 zostawił kompozytora z wielokanałowym plikiem EXR i zadaniem złożenia z niego finalnego obrazu. W praktyce ta praca zaczyna się niemal zawsze od tego samego punktu wyjścia — dlatego Nuke, podobnie jak Houdini w Dodatku K, ma własne mechanizmy pakowania powtarzalnej struktury w reużywalne jednostki.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Szablon jako punkt startowy</div>
+    <h2>Ten sam graf węzłów, za każdym razem od nowa</h2>
+    <p>Każdy shot potrzebuje podobnego szkieletu: wczytania wszystkich passów z Rozdziału 13, ustawienia właściwego configu OCIO z Rozdziału 12, standardowej kolejności scalania passów odtwarzającej beauty, węzła wyjściowego w odpowiednim formacie. Zamiast budować to ręcznie za każdym razem, kompozytor zaczyna od <span class="term-amber">szablonu</span> (toolset) — gotowego, wcześniej przygotowanego grafu węzłów, skopiowanego do nowego skryptu shotu. To gwarantuje spójność strukturalną między shotami tego samego showu, ale ma jedną ważną konsekwencję: skopiowany graf jest od tego momentu niezależną kopią. Poprawka w oryginalnym szablonie nie dociera automatycznie do shotów, które już z niego skorzystały.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Group i Gizmo</div>
+    <h2>Kiedy poprawka ma dotrzeć wszędzie od razu</h2>
+    <p>Tam, gdzie potrzeba odwrotnej właściwości — jednej, żywej definicji używanej przez wiele shotów naraz — Nuke oferuje <span class="term-cyan">Group</span> (kontener węzłów z wystawionym interfejsem, żyjący w obrębie jednego skryptu) i <span class="term-violet">Gizmo</span> — zapisaną, dystrybuowalną wersję takiej grupy, wskazującą na jeden, centralny plik definicji. Kiedy Gizmo jest skonfigurowane, żeby wczytywać swoją definicję z tego centralnego miejsca za każdym razem, a nie z lokalnej kopii, poprawka wprowadzona w tym jednym pliku — na przykład studyjny „deep merge" czy narzędzie do wybierania masek cryptomatte — aktualizuje się automatycznie w każdym skrypcie, który z tego Gizmo korzysta, bez potrzeby ręcznego dotykania choćby jednego shotu.</p>
+    <p>To rozróżnienie — kopia na zawsze niezależna (szablon) kontra żywe odwołanie do wspólnej definicji (Gizmo) — jest dokładnie tym samym pytaniem, które Rozdział 3 zadał o zmianę płynącą w dół rzeki. Wybór między nimi to świadoma decyzja: czy dany element ma być punktem startowym do dalszej, indywidualnej edycji, czy współdzielonym narzędziem, które powinno zachowywać się identycznie wszędzie, gdzie jest używane.</p>
   </div>
 
 <div class="site-nav">
