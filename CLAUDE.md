@@ -16,11 +16,13 @@ praktyce" (studios in practice) case-study series (Dodatki O–S); one practical
 [raytracing-book](https://bartoszskrzypiec.github.io/raytracing-book/), reusing its visual system.
 Live at https://bartoszskrzypiec.github.io/pipeline-book/.
 
-This is a living project, not a one-shot publication. As of the initial commit, the full table of
-contents and file structure exist, but **every chapter and appendix is a stub** (title + one-line
-hook + a "not written yet" status panel) — content gets written session by session. Don't build
-rigid generated structures (e.g. auto-generated index files) that would need manual rebuilding on
-every content change.
+This is a living project, not a one-shot publication. Every page now carries real content, but most
+of it sits at *introduction depth* (roughly 500–800 words, prose + one static diagram + glossary):
+the reader learns **that** a mechanism exists and why, without ever seeing it up close. The current
+phase is therefore **deepening**, not filling in blanks — see "Depth kit" below. The USD path
+(Rozdział 11 + Dodatki B, C, S) is the worked reference for what a deepened topic looks like; copy
+its shape rather than inventing a new one. Don't build rigid generated structures (e.g.
+auto-generated index files) that would need manual rebuilding on every content change.
 
 ## No build system
 
@@ -46,8 +48,10 @@ pomocnik/pomocnik-mini-pipeline-tom-1.html — practical companion: build a mini
                                              script + hook + PySide window, covers R.4, 7, 9, 15–16
 assets/style.css                           — single shared stylesheet (dark theme), copied from
                                              raytracing-book and evolving independently from here
-assets/interactive.js                      — formula modals + `.vec[data-tip]` tooltips, copied
-                                             as-is; not yet used by any pipeline-book page
+assets/interactive.js                      — `.vec[data-tip]` tooltips, detail modals, plus
+                                             `toggleLayer()` (chips switching SVG diagram layers)
+                                             and `revealAnswer()` (.exercise). Pages that use any
+                                             of it must link the script themselves.
 ```
 
 Every page links `assets/style.css` plus keeps its own Google Fonts `<link>` inline, exactly like
@@ -69,12 +73,13 @@ of rendering:
   tool's own UI: "Publish.trace", "Dependency.graph", "Farm.queue".
 - Inline SVG diagrams: directory trees, dependency graphs (DAGs) for USD/asset builds, publish
   version timelines, farm queue visualizations, branch/merge diagrams — instead of ray-bounce
-  diagrams. `interactive.js`'s `toggleRay()`-style pattern (see raytracing-book chapter 1's inline
-  script) should be renamed to something generic like `toggleLayer()` when the first real diagram
-  with toggleable layers is written here.
-- Color tokens (`--amber/--cyan/--violet/--raster`) stay as accents; a consistent semantic mapping
-  (e.g. amber = artist-facing data, cyan = tool/code, violet = tracking/metadata) should be decided
-  once, when the first real chapter is written — not per-page ad hoc.
+  diagrams. Toggleable layers use `toggleLayer()`: wrap each layer in `<g class="ray-group"
+  data-layer="x">` and add `<button class="chip" data-layer="x" aria-pressed="true">` in a
+  `.legend` below the SVG. Without JS every layer stays lit, so the diagram must read statically.
+- Color tokens: **amber = artist-facing data and artifacts, cyan = mechanism/tool/code, violet =
+  metadata, variants, tracking**; `--raster` is reserved for the "before/without pipeline" side of
+  a comparison and for diagnostics. Pages written before this rule (most of the book) still use the
+  colors ad hoc — align them when you touch a page, don't sweep separately.
 
 ## Content authoring rules
 
@@ -95,6 +100,34 @@ of rendering:
   `.site-nav` (and `.series-nav` for O–S) as-is unless the structure itself changes, and keep the
   hook sentence in `index.html` and the chapter's own `.subtitle` in sync if it's reworded.
 
+## Depth kit — how a topic goes past its introduction
+
+Six devices, all of which have ready CSS in `assets/style.css`. Pick what the topic needs; a page
+past introduction depth usually carries three or four. Worked examples of all six: `rozdzialy/
+rozdzial-11-usd.html` and `dodatki/dodatek-b-usd-w-glebi.html`.
+
+1. **Real artifact** (`.listing` + `.listing-label`, spans `.c` comment / `.s` string / `.k`
+   keyword) — an actual file fragment (`.usda`, `package.py`, an OCIO config, a farm job JSON),
+   never a paraphrase. Every new syntax token gets explained in the prose next to it; the hardest
+   two or three also get `.vec[data-tip]` tooltips.
+2. **Running example** (`.worked`) — the book's canonical shot is `show DEMO / seq010 / shot0100 /
+   asset hero_char`; reuse it instead of inventing new names. `.worked` walks one concrete case
+   step by step and ends with `.result` plus a `.check` line naming the command that verifies it.
+3. **Failure and diagnosis** (`.panel.debug`, with `.symptom` / `.cause` / `.check` per `.case`) —
+   what breaks, the real command that identifies it, the actual cause. Aim for failures readers
+   have already hit.
+4. **Decision and trade-off** (`.table-wrap` > `.compare-table`, `.table-note`) — including an
+   explicit "when NOT to use this". Every table must sit inside `.table-wrap` so it scrolls itself.
+5. **Interactive diagram** (`.legend` + `.chip[data-layer]` + `toggleLayer()`).
+6. **Depth navigation** (`.inline-deeper`, `.deeper`).
+
+Two more, unused so far but ready: `.exercise` + `.reveal-btn[data-answer]` + `.answer` (used in
+Dodatek B) and `.diagram-controls` (sliders, nothing uses it yet).
+
+Claims of fact — dates, product names, who built what — get verified (WebSearch) before they go in.
+Performance numbers that can't be sourced are written as an explicitly labelled illustration of
+proportion, never as a measurement.
+
 ## Navigation system
 
 Same layers as raytracing-book, hand-authored per page, no generation script:
@@ -104,9 +137,10 @@ Same layers as raytracing-book, hand-authored per page, no generation script:
 - **`.series-nav`**: Dodatki O–S ("Studia w praktyce") get a "Część 1–5" strip. Every part except
   the current one must be a real `<a>` link to the sibling file (current part stays a non-link
   `<span class="current">`).
-- **`.deeper`** / **`.inline-deeper`**: not yet added anywhere (no real chapter content exists
-  yet to anchor them to) — add these only once a chapter's actual prose has a natural anchor
-  point, per raytracing-book's convention.
+- **`.deeper`** / **`.inline-deeper`**: in use on the USD path. `.inline-deeper` goes inline right
+  where a chapter deliberately simplifies ("↓ Dodatek B: …"); the `.deeper` block goes after the
+  glossary and lists every page that extends this one. Add both whenever a page grows past
+  introduction depth.
 
 ## Git workflow
 
