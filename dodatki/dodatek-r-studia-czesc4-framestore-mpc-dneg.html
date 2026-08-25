@@ -12,17 +12,44 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>WYKŁAD · Studia w praktyce</span><span>CZĘŚĆ · 4 z 5</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>WYKŁAD · Studia w praktyce</span><span>CZĘŚĆ · 4 z 5</span><span>SIEDZIB · wiele krajów naraz</span>
   </div>
 
   <div class="eyebrow">Wykład: Studia w praktyce — część 4 z 5</div>
   <h1>Studia w praktyce, część 4: Framestore, MPC, DNEG — pipeline wielu show'ów naraz</h1>
   <p class="subtitle">Duże studio rzadko robi jeden film na raz — jak jeden dział pipeline'u obsługuje dziesięć produkcji i cztery kontynenty jednocześnie, bez dziesięciu różnych systemów.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>W odróżnieniu od Pixara (część 2), Framestore, MPC i DNEG to studia usługowe — pracują jednocześnie nad kilkunastoma produkcjami dla różnych, często konkurujących ze sobą klientów, z biurami rozsianymi po kilku krajach.</li>
+      <li>To problem z Rozdziału 17 (różne show'y potrzebują różnych wersji tych samych narzędzi) doprowadzony do skali przemysłowej — nie dwa show'y na jednej farmie, tylko kilkanaście naraz, rozsianych po kontynentach.</li>
+      <li>Separacja danych między klientami nie jest tu opcją, tylko twardym wymogiem — dwie konkurujące produkcje filmowe fizycznie nie mogą dzielić infrastruktury tak swobodnie, jak dwa show'y tego samego studia.</li>
+    </ul>
   </div>
+
+  <div class="section">
+    <p>Poprzednie części tej serii pokazały studia zorganizowane wokół jednej linii produkcyjnej — własnych filmów. Framestore, MPC i DNEG reprezentują inny model biznesowy: studia usługowe, pracujące na zlecenie dla wielu różnych klientów naraz, każdego z inną franczyzą, innym reżyserem i często innymi, sprzecznymi wymaganiami technicznymi dostawy.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Ten sam problem, przemysłowa skala</div>
+    <h2>Nie dwa show'y, kilkanaście naraz</h2>
+    <p>Rozdział 17 opisał problem dwóch produkcji o sprzecznych wymaganiach wersji narzędzi, dzielących tę samą pulę maszyn. W studiu usługowym tej wielkości ta sama sytuacja powtarza się nie dwa, a kilkanaście razy naraz — każda z kilkunastu równolegle prowadzonych produkcji ma własny, przypięty tagiem zestaw wersji narzędzi (Rozdział 9), własny config kolorów (Rozdział 12), często własne, specyficzne dla klienta wymagania dotyczące formatu dostawy. Menedżer środowiska z Rozdziału 17 musi rozwiązywać nie jeden, a kilkanaście niezależnych kontekstów jednocześnie, na tej samej, współdzielonej infrastrukturze.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Wiele biur, jeden pipeline</div>
+    <h2>Storage i uprawnienia rozciągnięte na kontynenty</h2>
+    <p>Studia tej wielkości działają zwykle z biur w kilku krajach naraz — dokładnie ten sam artysta pracujący nad tym samym shotem bywa fizycznie w Londynie, Montrealu czy Bombaju, w zależności od tego, gdzie dane studio ma zespół danego działu. To rozciąga architekturę storage'u z Rozdziału 20 poza jeden budynek — dane muszą być dostępne (albo zsynchronizowane) między biurami połączonymi łączami o zupełnie innej charakterystyce niż sieć lokalna jednego data center, co czyni pytania o cache lokalny i tiering z Rozdziału 20 jeszcze bardziej krytycznymi niż w studiu jednolokalizacyjnym.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Separacja jako twardy wymóg</div>
+    <h2>Dwóch klientów, zero współdzielenia</h2>
+    <p>Uprawnienia opisane w Dodatku H nabierają tu dodatkowego znaczenia: dwie duże produkcje filmowe obsługiwane przez to samo studio usługowe bywają bezpośrednimi konkurentami rynkowymi, więc separacja danych między nimi nie jest kwestią porządku, tylko kontraktowego wymogu bezpieczeństwa. Artysta pracujący nad jedną produkcją zwykle fizycznie nie ma dostępu do danych drugiej, nawet jeśli obie renderują się tej samej nocy na tej samej farmie — infrastruktura współdzielona na poziomie sprzętu musi pozostać w pełni odseparowana na poziomie danych i uprawnień.</p>
+  </div>
+
     <div class="series-nav">
       <a href="dodatek-o-studia-czesc1-ilm.html">Część 1: ILM</a><a href="dodatek-p-studia-czesc2-pixar.html">Część 2: Pixar</a><a href="dodatek-q-studia-czesc3-weta.html">Część 3: Weta</a><span class="current">Część 4: Framestore/MPC/DNEG</span><a href="dodatek-s-studia-czesc5-animal-logic-usd.html">Część 5: Animal Logic</a>
     </div>
