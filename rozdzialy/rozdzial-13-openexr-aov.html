@@ -12,16 +12,94 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 13/22</span><span>CZĘŚĆ · IV</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>PLIK · shot0100.####.exr</span><span>KANAŁÓW · 24</span><span>GŁĘBIA · 32-bit float</span>
   </div>
 
   <div class="eyebrow">Rozdział 13 / Wymiana danych</div>
   <h1>OpenEXR i AOV: obraz, który niesie więcej niż piksel</h1>
   <p class="subtitle">Beauty pass to dopiero początek — jeden plik EXR potrafi nieść dziesiątki warstw, które kompozytor złoży w cokolwiek zechce, długo po renderze.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Plik, który lighting przekazuje do compu, to nie jeden gotowy obrazek — to wielokanałowy OpenEXR, w którym każdy fizyczny składnik oświetlenia siedzi w osobnym kanale.</li>
+      <li>Rozbicie na passy pozwala kompozytorowi zmienić proporcje światła po fakcie, bez ponownego renderu — a zsumowanie wszystkich passów z powrotem daje dokładnie obraz beauty.</li>
+      <li>OpenEXR, format stworzony przez ILM specjalnie pod potrzeby VFX, obsługuje dowolną liczbę nazwanych kanałów i pełny zakres jasności, czego JPEG czy PNG nigdy nie miały w założeniach.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 3 nazwał lighting i compositing sąsiednimi ogniwami łańcucha — lighting renderuje, comp składa finalny obraz. Można by pomyśleć, że to, co przechodzi między nimi, to po prostu gotowy obrazek. W praktyce niemal nigdy tak nie jest: to, co lighting publikuje, to plik niosący dziesiątki osobnych, edytowalnych składników tego obrazka naraz.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dlaczego jeden obrazek nie wystarcza</div>
+    <h2>Elastyczność bez ponownego renderu</h2>
+    <p>Gdyby lighting oddawał kompozytorowi wyłącznie gotowy, spłaszczony obraz, każda prośba o „trochę mniej odbić" albo „cieplejszy cień" wymagałaby powrotu do renderu — kosztownego i wolnego kroku, którego pipeline stara się unikać wszędzie tam, gdzie się da. Rozwiązaniem jest renderowanie w <span class="term-amber">passach</span> (AOV, Arbitrary Output Variables): osobno zapisany diffuse, osobno specular, osobno odbicia, załamania, cienie, ambient occlusion, a do tego dane pomocnicze — wektory normalnych, głębia (Z), identyfikatory obiektów. Kompozytor dostaje te składniki osobno i może zmienić ich proporcje ręcznie, po fakcie, bez angażowania renderera po raz drugi.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Format zaprojektowany pod ten problem</div>
+    <h2>OpenEXR: więcej niż RGB</h2>
+    <p>Formaty takie jak JPEG czy PNG zakładają dokładnie trzy kanały koloru i ograniczony, ośmiobitowy zakres jasności — wystarczający do wyświetlenia gotowego zdjęcia, kompletnie niewystarczający do praktyk opisanych wyżej. <span class="term-cyan">OpenEXR</span>, format opracowany przez ILM i udostępniony branży na przełomie tysiącleci (poznasz tę historię bliżej w Dodatku O), został zaprojektowany od zera pod inne założenia: dowolna liczba nazwanych kanałów w jednym pliku — nie tylko <code>R</code>, <code>G</code>, <code>B</code>, ale też <code>diffuse.R</code>, <code>specular.G</code>, <code>N.x</code>, <code>Z</code> — oraz pełny zakres jasności zapisany jako liczby zmiennoprzecinkowe, obejmujący zarówno najciemniejszy cień, jak i jasność słońca odbitego wprost w obiektyw, bez obcinania żadnego z nich.</p>
+  </div>
+
+  <div class="diagram-frame">
+    <div class="diagram-hud"><span>EXR.channels</span><span>Jeden plik, dziesiątki warstw</span></div>
+    <svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrExr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+        </marker>
+      </defs>
+      <rect x="20" y="20" width="660" height="70" rx="8" fill="#20242c" stroke="#ecebe4" stroke-opacity="0.5"/>
+      <text x="350" y="14" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">shot0100.exr</text>
+      <g font-family="IBM Plex Mono" font-size="10.5" fill="#ecebe4">
+        <line x1="120" y1="20" x2="120" y2="90" stroke="#2a2f38"/>
+        <line x1="220" y1="20" x2="220" y2="90" stroke="#2a2f38"/>
+        <line x1="320" y1="20" x2="320" y2="90" stroke="#2a2f38"/>
+        <line x1="420" y1="20" x2="420" y2="90" stroke="#2a2f38"/>
+        <line x1="520" y1="20" x2="520" y2="90" stroke="#2a2f38"/>
+        <line x1="620" y1="20" x2="620" y2="90" stroke="#2a2f38"/>
+        <text x="70" y="58" text-anchor="middle">RGB</text>
+        <text x="170" y="58" text-anchor="middle">diffuse</text>
+        <text x="270" y="58" text-anchor="middle">specular</text>
+        <text x="370" y="58" text-anchor="middle">reflect</text>
+        <text x="470" y="58" text-anchor="middle">shadow</text>
+        <text x="570" y="58" text-anchor="middle">N / Z</text>
+        <text x="650" y="58" text-anchor="middle">crypto</text>
+      </g>
+      <line x1="350" y1="90" x2="350" y2="130" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrExr)"/>
+      <rect x="230" y="132" width="240" height="46" rx="7" fill="#20242c" stroke="#e8a33d"/>
+      <text x="350" y="160" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">suma wszystkich passów = beauty</text>
+    </svg>
+    <div class="diagram-caption">Kompozytor waży i miesza te kanały ręcznie — a ich prosta suma odtwarza dokładnie to, co zobaczyłby w jednym, niepodzielonym renderze.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Suma passów = beauty</div>
+    <h2>To nie zgadywanie, to dekompozycja</h2>
+    <p>Kluczowa własność większości passów: są tak zdefiniowane fizycznie, że ich zwykłe zsumowanie odtwarza dokładnie obraz <span class="term-violet">beauty</span> — czyli to, co zobaczyłbyś, gdyby renderer w ogóle nie dzielił oświetlenia na składniki. Kompozytor nie zgaduje więc, jak przybliżyć finalny wygląd — rozkłada dokładny wynik renderu na edytowalne części, zmienia proporcje któregoś z nich, i wciąż ma gwarancję, że przy neutralnych ustawieniach dostanie z powrotem to samo, co lighting zatwierdził. To właśnie ta własność sprawia, że rozbicie na passy jest praktyczne, a nie tylko teoretycznie eleganckie.</p>
+    <p>Cała ta wielokanałowa sekwencja klatek trafia do compu dokładnie tym samym mechanizmem publikacji co każdy inny wynik pracy w tej książce (Rozdział 7) — jako wersjonowany, zarejestrowany w systemie śledzenia zestaw plików, nie jako pojedynczy obrazek wysłany mailem.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>AOV / pass</dt>
+      <dd>Osobno wyrenderowany, fizycznie znaczący składnik obrazu (diffuse, specular, cień…).</dd>
+      <dt>Channel (kanał)</dt>
+      <dd>Nazwana warstwa danych wewnątrz jednego pliku obrazu, niekoniecznie kolorystyczna (np. głębia).</dd>
+      <dt>Beauty</dt>
+      <dd>Główny, złożony obraz sceny — suma wszystkich passów przy neutralnych proporcjach.</dd>
+      <dt>OpenEXR</dt>
+      <dd>Format obrazu o dowolnej liczbie kanałów i pełnym zakresie jasności, stworzony przez ILM pod potrzeby VFX.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Część IV pokazała, jak dane wędrują między programami. Część V wraca do ludzi, którzy te mechanizmy budują — zaczynając od Pythona, wspólnego języka, w którym pisze się niemal każde narzędzie pipeline'u opisane w tej książce.</p>
   </div>
 
 <div class="site-nav chapter-nav">
