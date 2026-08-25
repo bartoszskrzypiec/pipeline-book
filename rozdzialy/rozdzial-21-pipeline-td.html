@@ -12,16 +12,72 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 21/22</span><span>CZĘŚĆ · VII</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>ROLA · Pipeline TD</span><span>ZGŁOSZEŃ DZIENNIE · ~15</span><span>JĘZYK · artysta + programista</span>
   </div>
 
   <div class="eyebrow">Rozdział 21 / Ludzie</div>
   <h1>Pipeline TD: kto to jest i jak z nim pracować</h1>
   <p class="subtitle">Osoba, do której piszesz, gdy narzędzie się wywala — czym różni się jej praca od pracy artysty i programisty, i dlaczego jest trochę jednym i drugim.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Pipeline TD łączy dwie perspektywy naraz: rozumie, jak pracuje artysta, i potrafi napisać kod, który to wspiera — rzadko jest wyłącznie jednym albo drugim.</li>
+      <li>Zgłoszenie problemu, które podaje kontekst (show, shot, task) i dokładny komunikat błędu, znajduje przyczynę w minuty; „nie działa" nie znajduje jej wcale.</li>
+      <li>Fix, który wygląda na trywialny, często nie może wejść natychmiast — bo trafia dokładnie w te same mechanizmy review i pinowania wersji z Rozdziałów 9 i 17, chroniące resztę produkcji przed niespodzianką.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Cała ta książka opisywała mechanizmy — pliki, wersje, narzędzia, farmę. Za każdym z nich stoją jednak ludzie, którzy je budują i utrzymują. Ten przedostatni rozdział poświęcamy właśnie im: osobom, które w studiu noszą tytuł Pipeline TD (albo Pipeline Engineer, Pipeline Developer — nazwa różni się między studiami, rola jest zaskakująco spójna).</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Na styku dwóch światów</div>
+    <h2>Ani czysto artysta, ani czysto programista</h2>
+    <p>Pipeline TD rzadko jest wyłącznie jednym albo drugim. Część z nich zaczynała jako artyści — modelarze, riggerzy, kompozytorzy — którzy z czasem zainteresowali się automatyzacją własnej pracy i naturalnie przesunęli się w stronę kodu. Część to programiści, którzy trafili do VFX z zewnątrz i musieli nauczyć się, jak faktycznie wygląda dzień pracy osoby, dla której piszą narzędzia. Obie drogi prowadzą do tego samego miejsca: umiejętności pisania solidnego kodu (Część V tej książki) połączonej ze zrozumieniem, jak wygląda praca po drugiej stronie ekranu — czego artysta oczekuje po kliknięciu „Publish" i dlaczego zawieszone okno z Rozdziału 16 wygląda dla niego jak awaria, nie jak długa operacja w tle.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Jak zgłosić problem skutecznie</div>
+    <h2>„Nie działa" nie da się zdiagnozować</h2>
+    <p>Rozdział 15 wyjaśnił, dlaczego traceback Pythona jest nieczytelny dla artysty — ale to nie znaczy, że jest bezużyteczny. Dla Pipeline TD to najważniejsza pojedyncza informacja w całym zgłoszeniu.</p>
+
+    <div style="display:flex;gap:20px;flex-wrap:wrap;margin:24px 0;">
+      <div style="flex:1;min-width:260px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--raster);text-transform:uppercase;margin-bottom:12px;">Zgłoszenie, które nie pomaga</div>
+        <p style="margin:0;color:var(--text-dim);font-size:14px;line-height:1.6;">„Publish się wywala, pomocy"</p>
+      </div>
+      <div style="flex:1;min-width:260px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-bottom:12px;">Zgłoszenie, które znajduje przyczynę w minutę</div>
+        <p style="margin:0;color:var(--text);font-size:14px;line-height:1.6;">„Publish rigu <code>hero_char</code>, shot0100, task rigging, ok. 14:20 — okno pokazało czerwony komunikat, zrzut ekranu w załączniku"</p>
+      </div>
+    </div>
+
+    <p>Kontekst (show, shot czy asset, task), moment wystąpienia i dokładna treść komunikatu — nawet niezrozumiałego dla zgłaszającego — pozwalają Pipeline TD odtworzyć sytuację bez dopytywania w tę i z powrotem, co przy piętnastu zgłoszeniach dziennie robi ogromną różnicę w czasie reakcji.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dlaczego prosty fix nie zawsze wchodzi od razu</div>
+    <h2>Poprawka dla jednej osoby nie może zepsuć reszty</h2>
+    <p>Artysta, który zgłasza problem, zwykle chce jednego: żeby zniknął, najlepiej natychmiast. Pipeline TD musi jednak pamiętać, że każda zmiana w kodzie narzędzia (Rozdział 9) trafia — po code review — na branch, z którego korzystają wszyscy pozostali artyści, a show w krytycznej fazie może być świadomie przypięty do starszej, przetestowanej wersji (Rozdział 17). Poprawka, która wygląda na jednolinijkową, często i tak przechodzi przez te same bramki co każda inna zmiana — nie z biurokracji, tylko dlatego, że błąd wprowadzony pospiesznie do wspólnego narzędzia potrafi kosztować więcej czasu całej produkcji, niż zaoszczędziła jedna szybka łatka.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Pipeline TD</dt>
+      <dd>Osoba budująca i utrzymująca narzędzia oraz mechanizmy pipeline'u, łącząca perspektywę artysty i programisty.</dd>
+      <dt>Zgłoszenie (ticket)</dt>
+      <dd>Opis problemu przekazany zespołowi pipeline'u, najużyteczniejszy z kontekstem i dokładnym komunikatem błędu.</dd>
+      <dt>Hotfix</dt>
+      <dd>Pilna poprawka wprowadzana poza zwykłym cyklem, wciąż zwykle wymagająca podstawowego review.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Ostatni rozdział tej książki nie wprowadza nic nowego — łączy wszystkie mechanizmy poznane po drodze, śledząc jeden shot od pierwszego szkicu aż po klatkę, która trafia na ekran.</p>
   </div>
 
 <div class="site-nav chapter-nav">
