@@ -12,16 +12,130 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>POMOCNIK · Tom 1</span><span>OBEJMUJE · R.4, 7, 9, 15-16</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>POMOCNIK · Tom 1</span><span>OBEJMUJE · R.4, 7, 16, 18</span><span>WYMAGA · Python 3, żadnego DCC</span>
   </div>
 
   <div class="eyebrow">Pomocnik praktyczny / Tom 1</div>
   <h1>Zbuduj mini-pipeline od zera</h1>
-  <p class="subtitle">Te same tematy co w rozdziałach 4, 7, 9 i 15–16, ale tym razem piszesz kod: prosty publish script, hook do niego i okienko PySide, które to wszystko spina — krok po kroku.</p>
+  <p class="subtitle">Te same tematy co w rozdziałach 4, 7, 16 i 18, ale tym razem piszesz kod: prosty publish script, hook do niego i okienko PySide, które to wszystko spina — krok po kroku.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten pomocnik jeszcze nie został napisany. Treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">Zanim zaczniesz</div>
+    <p>Cały kod poniżej to zwykły Python — nie potrzebujesz Mayi ani żadnego innego DCC, żeby go uruchomić. Zamiast prawdziwej sceny 3D „publikujemy" mały plik JSON, udając plik roboczy artysty — mechanizm jest identyczny, tylko dane są uproszczone do minimum, żebyś mógł to odpalić w dowolnym terminalu i zobaczyć wynik.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Krok 1 · Rozdział 4</div>
+    <h2>Konwencja ścieżek</h2>
+    <p>Zaczynamy od najprostszego elementu: funkcji, która buduje ścieżkę do pliku na podstawie kontekstu, zamiast pozwalać komukolwiek wpisywać ją ręcznie.</p>
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:13px;line-height:1.8;color:var(--text);"><span style="color:var(--text-dim);">import os
+
+def build_path(show, task, filename, kind="work"):</span>
+    <span style="color:var(--text-dim);">"""kind: 'work' albo 'publish'"""</span>
+    return os.path.join(show, task, kind, filename)
+
+<span style="color:var(--text-dim);">print(build_path("DEMO", "lighting", "shot0100.json"))
+# DEMO/lighting/work/shot0100.json</span></pre>
+    </div>
+    <p>To dosłownie cała treść Rozdziału 4 zamknięta w jednej funkcji: nazwa i lokalizacja pliku przestają być czymś, co artysta wpisuje z pamięci, i stają się wynikiem obliczenia z kontekstu.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Krok 2 · Rozdział 7</div>
+    <h2>Publish script</h2>
+    <p>Zanim zobaczysz gotowe rozwiązanie — spróbuj sam. Napisz funkcję <code>next_version(publish_dir)</code>, która przeszuka folder <code>publish_dir</code> w poszukiwaniu plików nazwanych <code>*_v001.json</code>, <code>*_v002.json</code> itd., i zwróci numer o jeden większy niż najwyższy znaleziony (albo <code>1</code>, jeśli folder jest pusty).</p>
+
+    <details style="background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:16px 22px;margin:20px 0;">
+      <summary style="cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--cyan);text-transform:uppercase;">Pokaż rozwiązanie</summary>
+      <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin-top:16px;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:13px;line-height:1.8;color:var(--text);"><span style="color:var(--text-dim);">import glob, re
+
+def next_version(publish_dir):</span>
+    versions = []
+    for f in glob.glob(os.path.join(publish_dir, <span style="color:var(--amber);">"*_v*.json"</span>)):
+        m = re.search(<span style="color:var(--amber);">r"_v(\d+)\.json$"</span>, f)
+        if m:
+            versions.append(int(m.group(1)))
+    return max(versions, default=0) + 1</pre>
+      </div>
+    </details>
+
+    <p>Mając <code>build_path()</code> i <code>next_version()</code>, publish script pisze się niemal sam:</p>
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:13px;line-height:1.8;color:var(--text);"><span style="color:var(--text-dim);">import json
+
+def publish(show, task, name, data):</span>
+    publish_dir = build_path(show, task, <span style="color:var(--amber);">""</span>, kind=<span style="color:var(--amber);">"publish"</span>)
+    os.makedirs(publish_dir, exist_ok=True)
+    v = next_version(publish_dir)
+    out_path = os.path.join(publish_dir, f<span style="color:var(--amber);">"{name}_v{v:03d}.json"</span>)
+    with open(out_path, <span style="color:var(--amber);">"w"</span>) as f:
+        json.dump(data, f, indent=2)
+    print(f<span style="color:var(--amber);">"Opublikowano: {out_path}"</span>)
+    return out_path
+
+publish(<span style="color:var(--amber);">"DEMO"</span>, <span style="color:var(--amber);">"lighting"</span>, <span style="color:var(--amber);">"shot0100"</span>, {<span style="color:var(--amber);">"pass"</span>: <span style="color:var(--amber);">"beauty"</span>})
+<span style="color:var(--text-dim);"># Opublikowano: DEMO/lighting/publish/shot0100_v001.json</span></pre>
+    </div>
+    <p>Uruchom to dwa razy z rzędu — zobaczysz <code>shot0100_v001.json</code>, potem <code>shot0100_v002.json</code>. To już cały mechanizm z Rozdziału 7, tylko bez kroku zatwierdzenia i bez Perforce w tle.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Krok 3 · Rozdział 18</div>
+    <h2>Hook</h2>
+    <p>Dopiszmy prosty mechanizm hooków — listę funkcji wywoływanych automatycznie po każdej publikacji, dokładnie jak w Rozdziale 18.</p>
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:13px;line-height:1.8;color:var(--text);">hooks = []
+
+<span style="color:var(--text-dim);">def register_hook(fn):</span>
+    hooks.append(fn)
+
+<span style="color:var(--text-dim);">def run_hooks(published_path):</span>
+    for hook in hooks:
+        hook(published_path)
+
+<span style="color:var(--text-dim);"># dopisz na końcu funkcji publish(), przed "return out_path":
+#     run_hooks(out_path)
+
+def notify_department(path):</span>
+    print(f<span style="color:var(--amber);">"[hook] Nowa publikacja gotowa -&gt; {path}"</span>)
+
+register_hook(notify_department)</pre>
+    </div>
+    <p>Dodaj wywołanie <code>run_hooks(out_path)</code> na końcu <code>publish()</code>, tuż przed <code>return</code>, i przetestuj ponownie — zobaczysz, że powiadomienie pojawia się samo, bez zmiany ani jednej linijki w miejscu, gdzie wywołujesz <code>publish()</code>. To dokładnie ten mechanizm rozdziela od siebie Rozdział 18: logika publikacji nie musi nic wiedzieć o tym, kto i dlaczego chce zareagować na jej wynik.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Krok 4 · Rozdział 16</div>
+    <h2>Okienko PySide</h2>
+    <p>Ten fragment wymaga już zainstalowanego PySide (<code>pip install PySide6</code>) albo uruchomienia wewnątrz DCC, który je osadza (Rozdział 16) — potraktuj go jako kod do przeczytania i samodzielnego wypróbowania, nie do wklejenia w ten sam plik co poprzednie kroki.</p>
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:13px;line-height:1.8;color:var(--text);"><span style="color:var(--text-dim);">from PySide6.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QLabel, QPushButton
+)
+
+class PublishWindow(QWidget):
+    def __init__(self, show, task, name, data):</span>
+        super().__init__()
+        self.show_, self.task, self.name, self.data = show, task, name, data
+        self.setWindowTitle(<span style="color:var(--amber);">"Publish"</span>)
+        layout = QVBoxLayout(self)
+        <span style="color:var(--text-dim);"># kontekst pokazany, nie do edycji — zasada z Rozdziału 16</span>
+        layout.addWidget(QLabel(f<span style="color:var(--amber);">"{show} / {task} / {name}"</span>))
+        btn = QPushButton(<span style="color:var(--amber);">"Publish"</span>)
+        btn.clicked.connect(self.on_publish)
+        layout.addWidget(btn)
+
+    <span style="color:var(--text-dim);">def on_publish(self):</span>
+        publish(self.show_, self.task, self.name, self.data)</pre>
+    </div>
+    <p>Zwróć uwagę, że <code>on_publish()</code> woła dokładnie tę samą funkcję <code>publish()</code>, którą napisałeś w Kroku 2 — okno nie duplikuje logiki, tylko daje jej przycisk. Dokładnie tak, jak Rozdział 15 opisał różnicę między skryptem a narzędziem.</p>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Masz już wszystkie cztery elementy: konwencję ścieżek, publish script, hook i okno. Spróbuj rozbudować to samodzielnie — dodaj plik logu symulujący system śledzenia z Rozdziału 8, albo prostą blokadę pliku odzwierciedlającą mechanizm z Rozdziału 6. Każdy z tych kroków to już tylko powtórzenie tego samego wzorca: mały, czytelny fragment kodu, rozwiązujący dokładnie jeden problem.</p>
   </div>
 
 <div class="site-nav">
