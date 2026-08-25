@@ -25,6 +25,7 @@
       <li>Alembic to celowo prosty, wyłącznie do odczytu cache kształtu w czasie — bez kompozycji, bez warstw, bez materiałów.</li>
       <li>USD potrafi to samo i znacznie więcej — nieniszczące nakładki, warianty, referencje — kosztem większej złożoności silnika, który to wszystko rozwiązuje.</li>
       <li>To nie zawsze wybór jednego zamiast drugiego: USD potrafi wczytać plik Alembic jako część swojej kompozycji, więc oba formaty często współistnieją w tym samym pipeline.</li>
+      <li>Najczęstsza realna awaria na styku tych formatów nie dotyczy żadnej z tych różnic, tylko jednostek i osi „do góry" — dane wchodzą obrócone albo sto razy za duże.</li>
     </ul>
   </div>
 
@@ -36,39 +37,153 @@
     <div class="section-eyebrow">Etap: Różna ambicja, nie różna jakość</div>
     <h2>Cache kontra system kompozycji</h2>
     <p>Alembic (Rozdział 10) robi celowo jedną rzecz: zapisuje wynik — pozycje, kształty, transformacje w czasie — w formie zoptymalizowanej pod szybki, sekwencyjny odczyt. Nie wie nic o warstwach, wariantach czy nieniszczących nadpisaniach; żeby cokolwiek w nim zmienić, wracasz do źródła i zapiekasz na nowo. USD (Rozdział 11) rozwiązuje szerszy problem — składanie całych scen z wielu, niezależnie edytowalnych warstw — i ta szerokość ambicji ma swoją cenę: silnik kompozycji, który trzeba rozwiązać, zanim cokolwiek się wyświetli, jest z natury bardziej złożony niż sekwencyjny odczyt pliku Alembic.</p>
+
+    <div class="table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr><th>Cecha</th><th>Alembic (.abc)</th><th>USD (.usd / .usda / .usdc)</th></tr>
+        </thead>
+        <tbody>
+          <tr><th>Rola w pipeline</th><td>Zamrożony wynik jednego zadania</td><td class="yes">Opis całej sceny i sposobu jej złożenia</td></tr>
+          <tr><th>Nieniszczące nadpisania</th><td>Brak — zmiana wymaga ponownego zapieczenia</td><td class="yes">Tak, przez warstwy i <code>over</code> (Dodatek B)</td></tr>
+          <tr><th>Referencje do innych plików</th><td>Brak</td><td class="yes">Referencje i payloady, bez kopiowania danych</td></tr>
+          <tr><th>Warianty i przełączniki</th><td>Brak</td><td class="yes"><code>variantSet</code> wewnątrz assetu</td></tr>
+          <tr><th>Materiały i światła</th><td>Nie — wyłącznie geometria i transformacje</td><td class="yes">Tak, razem z powiązaniem materiałów</td></tr>
+          <tr><th>Dane w czasie</th><td class="yes">Próbkowane klatka po klatce, do sekwencyjnego odczytu</td><td>Też, plus opis proceduralny i wiele warstw czasu</td></tr>
+          <tr><th>Koszt wdrożenia w studiu</th><td class="yes">Praktycznie zerowy — eksport i import</td><td>Resolver, konwencja warstw, zgodność wersji wtyczek</td></tr>
+          <tr><th>Kto to otworzy</th><td class="yes">Niemal każdy DCC od lat</td><td>Rosnąco, ale zależnie od wersji i wtyczek (Rozdział 17)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">Kolumna wyróżniona w wierszu = format, który w tej konkretnej rubryce wypada lepiej. Sumowanie „wygranych" nie ma sensu — liczy się tylko ten wiersz, który opisuje Twoje zadanie.</p>
   </div>
 
-  <div style="display:flex;gap:20px;flex-wrap:wrap;margin:24px 0;">
-    <div style="flex:1;min-width:260px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;">
-      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--raster);text-transform:uppercase;margin-bottom:12px;">Alembic</div>
-      <ul style="margin:0;padding-left:18px;color:var(--text);">
-        <li>Wyłącznie do odczytu, brak nadpisań</li>
-        <li>Brak materiałów, wyłącznie geometria</li>
-        <li>Prosty, szybki sekwencyjny odczyt</li>
-        <li>Dobry do przekazania jednego, zamkniętego wyniku</li>
-      </ul>
+  <div class="section">
+    <div class="section-eyebrow">Etap: Ten sam cache, dwa spojrzenia</div>
+    <h2>Jak to wygląda w plikach</h2>
+    <p>Weźmy publish animacji z shotu <code>DEMO / seq010 / shot0100</code>. Jako Alembic jest to jeden plik z hierarchią obiektów, którą można obejrzeć narzędziem <code>abcls</code> dołączanym do bibliotek Alembic:</p>
+
+    <div class="listing">
+      <div class="listing-label"><span>abcls -r DEMO_seq010_shot0100_anim_v007.abc</span><span>wynik skrócony</span></div>
+<pre><span class="c">/</span>
+<span class="c">/World</span>
+/World/hero_char
+/World/hero_char/body            <span class="c">// PolyMesh, 240 próbek czasu</span>
+/World/hero_char/backpack        <span class="c">// PolyMesh, 240 próbek czasu</span>
+/World/hero_char/rig_ctrl_grp    <span class="c">// Xform, 240 próbek czasu</span></pre>
     </div>
-    <div style="flex:1;min-width:260px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;">
-      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-bottom:12px;">USD</div>
-      <ul style="margin:0;padding-left:18px;color:var(--text);">
-        <li>Nieniszczące warstwy i nadpisania (Dodatek B)</li>
-        <li>Materiały, warianty, pełna scena</li>
-        <li>Silnik kompozycji rozwiązujący warstwy</li>
-        <li>Dobry do składania sceny z wielu źródeł naraz</li>
-      </ul>
+
+    <p>To wszystko, co Alembic wie o tej scenie: nazwy, kształty i ich wartości w kolejnych próbkach czasu. Żeby ten sam cache trafił do sceny USD, nie trzeba go konwertować — wystarczy go zreferować tak samo jak plik <code>.usd</code>:</p>
+
+    <div class="listing">
+      <div class="listing-label"><span>DEMO_seq010_shot0100_anim_v007.usda</span><span>warstwa animacji</span></div>
+<pre><span class="k">over</span> <span class="s">"World"</span>
+{
+    <span class="k">over</span> <span class="s">"hero_char"</span> (
+        <span class="k">prepend</span> references = <span class="s">@./DEMO_seq010_shot0100_anim_v007.abc@</span>
+    )
+    {
+    }
+}</pre>
     </div>
+
+    <p>Za tę jedną linijkę odpowiada wtyczka <code>usdAbc</code>, która uczy USD czytać pliki <code>.abc</code> jako zwykłą warstwę. To ważny szczegół operacyjny: jeżeli u kolegi ta wtyczka nie jest załadowana w danym środowisku, ta sama scena po prostu nie otworzy warstwy — mimo że plik jest na dysku i jest poprawny. Zarządzanie tym, kto ma jakie wtyczki, to temat Rozdziału 17.</p>
   </div>
 
   <div class="section">
     <div class="section-eyebrow">Etap: Nie zawsze albo-albo</div>
     <h2>USD potrafi wczytać Alembic jako część siebie</h2>
-    <p>Te dwa formaty nie zawsze konkurują o to samo miejsce w pipeline. USD ma wbudowany mechanizm wczytywania plików <code>.abc</code> bezpośrednio jako część swojej kompozycji — cache z animacji, zapieczony dokładnie tak jak w Rozdziale 10, może zostać zreferowany do warstwy USD tak samo, jak referuje się natywny plik <code>.usd</code>. W praktyce wiele studiów robi dokładnie to: animacja publikuje Alembic, bo dla samego zadania „zapisz ruch" jest prostszy i szybszy w zapisie niż pełna scena USD, a warstwa lightingu czy layoutu referuje ten Alembic wewnątrz swojej kompozycji USD, korzystając z warstw i wariantów tam, gdzie faktycznie są potrzebne.</p>
+    <p>Te dwa formaty nie zawsze konkurują o to samo miejsce w pipeline. W praktyce wiele studiów robi dokładnie to, co widać w listingu wyżej: animacja publikuje Alembic, bo dla samego zadania „zapisz ruch" jest prostszy i szybszy w zapisie niż pełna scena USD, a warstwa lightingu czy layoutu referuje ten Alembic wewnątrz swojej kompozycji USD, korzystając z warstw i wariantów tam, gdzie faktycznie są potrzebne. Odbiorca końcowy widzi jeden spójny stage i nie musi nawet wiedzieć, że część danych przyszła w innym formacie.</p>
+  </div>
+
+  <div class="diagram-frame">
+    <div class="diagram-hud"><span>Format.decide</span><span>Trzy pytania, jedna decyzja</span></div>
+    <svg viewBox="0 0 700 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Drzewo decyzyjne: kiedy Alembic, kiedy USD">
+      <defs>
+        <marker id="arrDec" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#6e93be"/>
+        </marker>
+      </defs>
+      <g font-family="IBM Plex Sans" font-size="12.5" fill="#ecebe4">
+        <rect x="30" y="20" width="330" height="52" rx="8" fill="#20242c" stroke="#6e93be" stroke-opacity="0.6"/>
+        <text x="46" y="42">Czy odbiorca musi nieniszcząco</text>
+        <text x="46" y="60">nadpisywać te dane?</text>
+
+        <rect x="30" y="112" width="330" height="52" rx="8" fill="#20242c" stroke="#6e93be" stroke-opacity="0.6"/>
+        <text x="46" y="134">Czy to scena z wielu assetów</text>
+        <text x="46" y="152">i wielu działów naraz?</text>
+
+        <rect x="30" y="204" width="330" height="52" rx="8" fill="#20242c" stroke="#6e93be" stroke-opacity="0.6"/>
+        <text x="46" y="226">Czy odbiorca ma USD</text>
+        <text x="46" y="244">w swoim pipeline?</text>
+
+        <rect x="430" y="20" width="240" height="52" rx="8" fill="#20242c" stroke="#e8a33d"/>
+        <text x="550" y="50" text-anchor="middle" font-weight="600">USD</text>
+
+        <rect x="430" y="112" width="240" height="52" rx="8" fill="#20242c" stroke="#e8a33d"/>
+        <text x="550" y="142" text-anchor="middle" font-weight="600">USD</text>
+
+        <rect x="430" y="204" width="240" height="52" rx="8" fill="#20242c" stroke="#e8a33d" stroke-opacity="0.7"/>
+        <text x="550" y="226" text-anchor="middle">Alembic w warstwie USD</text>
+        <text x="550" y="244" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">oba naraz</text>
+
+        <rect x="430" y="286" width="240" height="42" rx="8" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.8"/>
+        <text x="550" y="312" text-anchor="middle" font-weight="600">Alembic</text>
+      </g>
+
+      <g font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">
+        <line x1="362" y1="46" x2="426" y2="46" stroke="#6e93be" stroke-width="2" marker-end="url(#arrDec)"/>
+        <text x="380" y="38">tak</text>
+        <line x1="362" y1="138" x2="426" y2="138" stroke="#6e93be" stroke-width="2" marker-end="url(#arrDec)"/>
+        <text x="380" y="130">tak</text>
+        <line x1="362" y1="230" x2="426" y2="230" stroke="#6e93be" stroke-width="2" marker-end="url(#arrDec)"/>
+        <text x="380" y="222">tak</text>
+
+        <line x1="195" y1="72" x2="195" y2="110" stroke="#6e93be" stroke-width="2" marker-end="url(#arrDec)"/>
+        <text x="203" y="96">nie</text>
+        <line x1="195" y1="164" x2="195" y2="202" stroke="#6e93be" stroke-width="2" marker-end="url(#arrDec)"/>
+        <text x="203" y="188">nie</text>
+        <line x1="195" y1="256" x2="195" y2="307" stroke="#6e93be" stroke-width="2"/>
+        <line x1="195" y1="307" x2="426" y2="307" stroke="#6e93be" stroke-width="2" marker-end="url(#arrDec)"/>
+        <text x="203" y="280">nie</text>
+      </g>
+    </svg>
+    <div class="diagram-caption">Trzy pytania w tej kolejności rozstrzygają większość realnych przypadków. Zwróć uwagę, że ostatnie z nich nie dotyczy techniki, tylko tego, co odbiorca faktycznie utrzymuje u siebie.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Kiedy to się psuje</div>
+    <h2>Scena wchodzi obrócona albo sto razy za duża</h2>
+    <p>Najczęstsza awaria na styku Alembica i USD nie ma nic wspólnego z warstwami ani kompozycją. Wynika z tego, że oba formaty inaczej traktują dwie rzeczy, o których artysta zwykle w ogóle nie myśli: którą oś uznajemy za „do góry" i ile metrów ma jedna jednostka sceny.</p>
+
+    <div class="panel debug">
+      <div class="panel-label">Objaw → sprawdzenie → przyczyna</div>
+
+      <div class="case">
+        <p class="symptom">Zreferowany cache leży na boku albo jest obrócony o 90°.</p>
+        <p class="cause">Cache powstał w programie pracującym w osi Z „do góry", a stage USD deklaruje oś Y (albo odwrotnie). Kompozycja niczego tu nie przelicza — dane wchodzą dokładnie takie, jakie są.</p>
+        <p class="check">Sprawdzenie: <code>usdcat shot0100.usd | head</code> pokazuje metadane stage'u, w tym <code>upAxis</code>; w kodzie odpowiada temu <code>UsdGeom.GetStageUpAxis(stage)</code>. Poprawka należy do eksportu albo do warstwy pośredniej z jawnym obrotem — nigdy do ręcznego kręcenia obiektem w shocie.</p>
+      </div>
+
+      <div class="case">
+        <p class="symptom">Postać wchodzi mikroskopijna albo wielkości budynku.</p>
+        <p class="cause">Rozjazd jednostek: stage deklaruje <code>metersPerUnit</code> inny niż ten, w którym zapisano cache. Alembic nie niesie tej informacji w sposób, który USD mógłby automatycznie uwzględnić, więc nikt tego za Ciebie nie przeliczy.</p>
+        <p class="check">Sprawdzenie: <code>UsdGeom.GetStageMetersPerUnit(stage)</code> po stronie sceny i ustawienia jednostek w programie, z którego szedł eksport. Rozwiązanie systemowe: jedna, zapisana w konwencji studia jednostka i oś dla całego showa (Rozdział 4), wymuszana przez narzędzie publishujące (Rozdział 7).</p>
+      </div>
+    </div>
   </div>
 
   <div class="section">
     <div class="section-eyebrow">Etap: Kiedy które</div>
     <h2>Praktyczna reguła kciuka</h2>
     <p>Jeśli zadanie to „przekaż zamknięty, gotowy wynik, którego nikt po drodze nie musi nieniszcząco nadpisywać" — animację do FX, symulację do compu — Alembic zwykle wystarcza i bywa lżejszy w zapisie. Jeśli zadanie to „złóż całą scenę z assetów, warstw wielu działów i wariantów, które ktoś może jeszcze zmienić po drodze" — pełny shot gotowy do renderu — USD jest narzędziem zaprojektowanym dokładnie pod ten problem. Dobry pipeline rzadko wybiera jedno kosztem drugiego; częściej używa obu, każdego tam, gdzie jego mocna strona faktycznie ma znaczenie.</p>
+  </div>
+
+  <div class="deeper">
+    <div class="deeper-label">Idź głębiej</div>
+    <a href="../rozdzialy/rozdzial-10-alembic.html">Rozdział 10 — Alembic: co dokładnie zamraża cache geometrii</a>
+    <a href="../rozdzialy/rozdzial-11-usd.html">Rozdział 11 — USD: warstwy, stage i plik shotu od środka</a>
+    <a href="dodatek-b-usd-w-glebi.html">Dodatek B — sześć composition arcs i kolejność LIVRPS na konkretnym konflikcie</a>
   </div>
 
 <div class="site-nav">
