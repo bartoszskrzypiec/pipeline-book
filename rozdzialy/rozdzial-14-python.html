@@ -12,16 +12,75 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 14/22</span><span>CZĘŚĆ · V</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>JĘZYK · Python</span><span>DCC · Maya, Houdini, Nuke, Katana</span><span>SILNIK · C++</span>
   </div>
 
   <div class="eyebrow">Rozdział 14 / Narzędzia</div>
   <h1>Python jako wspólny język pipeline'u</h1>
   <p class="subtitle">Maya, Houdini, Nuke i Katana mówią różnymi dialektami tego samego języka — dlaczego to Python, a nie C++, zszywa cały pipeline w jedną całość.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Każdy większy DCC — Maya, Houdini, Nuke, Katana — osadza w sobie interpreter Pythona i wystawia swój wewnętrzny model danych jako API tego języka; różni się API, nie sam język.</li>
+      <li>Python nie zastępuje C++, w którym napisane są silniki tych programów — to warstwa klejąca, spinająca różne aplikacje na poziomie, na którym człowiek albo skrypt pipeline'u potrzebuje kontroli.</li>
+      <li>Ten sam język działa też poza DCC — w skryptach farmy, demonach nasłuchujących eventy z Rozdziału 8, narzędziach wiersza poleceń — więc wiedza pipeline TD przenosi się między wszystkimi tymi kontekstami.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Część IV pokazała formaty, którymi dane wędrują między programami. Ta część pokazuje, jak w ogóle powstają narzędzia, które te formaty czytają, piszą i spinają w jeden proces. Zaczyna się od pytania, które prędzej czy później zadaje sobie każdy początkujący pipeline TD: skoro Maya, Houdini i Nuke są napisane w C++, dlaczego niemal cały kod pipeline'u, który je łączy, jest w Pythonie?</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Jeden język, różne dialekty</div>
+    <h2>Ta sama składnia, inne API</h2>
+    <p>Każdy z głównych DCC embeduje interpreter Pythona i wystawia swój wewnętrzny model sceny jako zestaw funkcji i klas tego języka. Składnia jest zawsze ta sama — pętle, funkcje, importy — ale nazwy i kształt API różnią się między aplikacjami, bo każda odzwierciedla swój własny model danych:</p>
+
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:13px;line-height:1.85;color:var(--text);"><span style="color:var(--text-dim);"># Maya</span>
+<span style="color:var(--cyan);">import</span> maya.cmds <span style="color:var(--cyan);">as</span> cmds
+selected = cmds.ls(selection=<span style="color:var(--amber);">True</span>)
+
+<span style="color:var(--text-dim);"># Houdini</span>
+<span style="color:var(--cyan);">import</span> hou
+selected = hou.selectedNodes()
+
+<span style="color:var(--text-dim);"># Nuke</span>
+<span style="color:var(--cyan);">import</span> nuke
+selected = nuke.selectedNodes()</pre>
+    </div>
+
+    <p>Trzy różne API, to samo pytanie: „co jest zaznaczone". Riger, który zna Pythona, nie musi uczyć się nowego języka programowania, żeby zacząć skryptować w Houdinim — musi tylko poznać nowy słownik. To jedna z głównych przyczyn, dla których artysta techniczny, przechodząc między działami i programami, wciąż może korzystać z tej samej, raz zdobytej umiejętności.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Klej, nie silnik</div>
+    <h2>Python nie zastępuje C++, tylko go spina</h2>
+    <p>Same silniki tych programów — rasteryzacja viewportu, symulacje fizyczne, kompresja obrazu — pozostają napisane w C++ (albo podobnie szybkim języku) właśnie dlatego, że liczą się tam mikrosekundy. Python w tej architekturze pełni rolę <span class="term-amber">kleju</span>: warstwy, w której nie liczy się surowa wydajność, tylko szybkość pisania, czytelność i łatwość zmiany. Skrypt publikujący z Rozdziału 7 nie musi renderować klatki w mikrosekundę — musi być łatwy do napisania, przeczytania przez kolegę podczas code review (Rozdział 9) i zmiany, kiedy konwencja się zmieni. Dokładnie w tym miejscu Python wygrywa z C++: brak kroku kompilacji oznacza, że poprawka trafia do artystów w kilka minut, nie po przebudowaniu i przetestowaniu binarki.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Poza DCC też</div>
+    <h2>Ten sam język w tle, nie tylko w oknie programu</h2>
+    <p>Python w pipeline nie żyje wyłącznie wewnątrz okien Mayi czy Nuke. Skrypty wysyłające zadania na farmę renderową (Rozdział 19), demony nasłuchujące zmian statusu w systemie śledzenia i automatycznie reagujące (Rozdział 18), narzędzia wiersza poleceń do zarządzania środowiskiem (Rozdział 17) — wszystkie one też są zwykle napisane w Pythonie, uruchamiane niezależnie od jakiegokolwiek DCC. To sprawia, że wiedza pipeline TD nie jest rozdrobniona między dziesiątkami niekompatybilnych technologii — jeden język obsługuje całą infrastrukturę, od przycisku w menu Mayi po skrypt uruchamiany co noc na serwerze.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>API</dt>
+      <dd>Zestaw funkcji i klas, przez które program wystawia swój wewnętrzny model danych na zewnątrz.</dd>
+      <dt>Binding</dt>
+      <dd>Warstwa łącząca funkcje napisane w jednym języku (np. C++) z interfejsem dostępnym w innym (Python).</dd>
+      <dt>Standalone script</dt>
+      <dd>Skrypt Pythona uruchamiany niezależnie od jakiegokolwiek DCC, np. na serwerze czy farmie.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Znamy już język. Następny rozdział pokazuje, jak z pojedynczego skryptu Pythona powstaje coś, co artysta faktycznie klika — cała droga od kodu na biurku programisty do przycisku w menu Mayi.</p>
   </div>
 
 <div class="site-nav chapter-nav">
