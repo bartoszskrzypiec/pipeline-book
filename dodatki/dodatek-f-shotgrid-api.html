@@ -12,16 +12,51 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · F</span><span>EXT OF · Rozdział 8</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · F</span><span>API · find() / EventLogEntry</span><span>EXT OF · Rozdział 8</span>
   </div>
 
-  <div class="eyebrow">Dodatek F / Głębiej</div>
+  <div class="eyebrow">Dodatek F / Głębiej: Śledzenie produkcji</div>
   <h1>Schemat i eventy Shotgun/ShotGrid API</h1>
   <p class="subtitle">Rozdział 8 pokazał, jak status w przeglądarce trafia na dysk. Ten dodatek pokazuje mechanizm: schemat encji i triggery reagujące na zmianę pola.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Schemat encji z Rozdziału 8 jest w pełni konfigurowalny per studio — każdy dodaje własne, niestandardowe pola, dlatego dwa ShotGridy w dwóch różnych studiach różnią się w szczegółach mimo tych samych encji bazowych.</li>
+      <li>API odpytuje bazę filtrami przypominającymi zapytania SQL, zwracając tylko te encje i pola, o które faktycznie poprosisz.</li>
+      <li>Każda zmiana w bazie tworzy wpis w dzienniku zdarzeń, który proces nasłuchujący w tle porównuje z zarejestrowanymi regułami i odpala odpowiedni hook z Rozdziału 18.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 8 opisał Task, Shot i Version jako rekordy w bazie danych, bez wchodzenia w to, jak dokładnie programista odpytuje tę bazę ani jak wygląda mechanizm, który pozwala jej „reagować" na zmiany, wspomniany w Rozdziale 18. Ten dodatek pokazuje obie te warstwy.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Schemat, który każde studio zmienia po swojemu</div>
+    <h2>Te same encje, różne pola</h2>
+    <p>Encje z Rozdziału 8 — Shot, Task, Version — istnieją w każdym wdrożeniu ShotGrid czy ftrack, ale <span class="term-amber">schemat</span> pól przypisanych do każdej z nich jest w pełni konfigurowalny. Jedno studio dodaje do Taska własne pole <code>sg_priority</code>, inne — pole wskazujące na dział odpowiedzialny za zatwierdzenie, jeszcze inne dorzuca customowy typ encji nieistniejący nigdzie indziej, np. „Sekwencja kamery" dla produkcji motion capture (Dodatek U). To dlatego Rozdział 8 mówił o „tym samym modelu" w trzech narzędziach ostrożnie — model bazowy jest wspólny, ale każde studio buduje na nim swoją, unikalną warstwę pól.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Odpytywanie bazy</div>
+    <h2>Filtr, encja, pola — nic więcej</h2>
+    <p>Typowe zapytanie do API systemu śledzenia ma zawsze ten sam kształt: jaką encję chcesz, jakie warunki (filtry) muszą spełniać zwrócone rekordy, i jakie pola faktycznie Cię interesują — API nie zwraca nigdy całego rekordu ze wszystkimi polami, tylko te, o które poprosisz, co ma znaczenie przy zapytaniach zwracających tysiące rekordów naraz.</p>
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--text);"><span style="color:var(--text-dim);"># przykładowa, uproszczona składnia zapytania</span>
+tasks = sg.find(
+    <span style="color:var(--amber);">"Task"</span>,
+    filters=[[<span style="color:var(--amber);">"sg_status_list"</span>, <span style="color:var(--amber);">"is"</span>, <span style="color:var(--amber);">"apr"</span>]],
+    fields=[<span style="color:var(--amber);">"content"</span>, <span style="color:var(--amber);">"entity"</span>, <span style="color:var(--amber);">"task_assignees"</span>]
+)</pre>
+    </div>
+    <p>Powyższe zapytanie zwraca wszystkie taski o statusie „zatwierdzony", razem z ich nazwą, powiązanym shotem czy assetem i listą przypisanych osób — dokładnie ten sam typ zapytania stoi za każdym dashboardem opisanym w Rozdziale 8.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Eventy — jak baza „reaguje"</div>
+    <h2>Dziennik zdarzeń i nasłuchujący proces</h2>
+    <p>Mechanizm automatyzacji z Rozdziału 18 opiera się na tym, że każda zmiana w bazie — nowy rekord, zmiana statusu, dodana notatka — tworzy wpis w <span class="term-cyan">dzienniku zdarzeń</span> (event log). Osobny, stale działający proces nasłuchuje tego strumienia zdarzeń i porównuje każde nowe zdarzenie z zarejestrowaną listą reguł: „jeśli status Taska zmienił się na <code>apr</code>, uruchom ten skrypt". Kiedy trafi na dopasowanie, wywołuje odpowiedni hook — dokładnie ten drugi z dwóch sposobów podpięcia automatyzacji, które Rozdział 18 opisał jako alternatywę dla hooków wbudowanych bezpośrednio w narzędzie publikujące.</p>
   </div>
 
 <div class="site-nav">
