@@ -12,16 +12,89 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 16/22</span><span>CZĘŚĆ · V</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>TOOLKIT · PySide/Qt</span><span>OKNO · Publish</span><span>KLIKNIĘĆ DO CELU · 1</span>
   </div>
 
   <div class="eyebrow">Rozdział 16 / Narzędzia</div>
   <h1>Interfejsy dla artystów: PySide/Qt bez zgadywania</h1>
   <p class="subtitle">Narzędzie, które trzeba tłumaczyć na Slacku, jest złym narzędziem — jak projektuje się okno, które artysta rozumie bez czytania dokumentacji.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Qt/PySide to standardowy toolkit UI osadzony w większości DCC — sama technologia nie gwarantuje dobrego interfejsu, tylko daje narzędzia do jego zbudowania.</li>
+      <li>Dobre okno pokazuje kontekst, który narzędzie już zna, zamiast pytać o niego ponownie, i ma sensowne wartości domyślne — happy path to jedno kliknięcie „Publish".</li>
+      <li>Długa operacja bez wskaźnika postępu wygląda jak zawieszony program — a ponieważ Qt działa we wspólnej pętli zdarzeń z samym DCC, źle napisany wątek potrafi naprawdę zamrozić całą aplikację, nie tylko okno narzędzia.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 15 zostawił narzędzie odporne na błędy, ale wciąż uruchamiane ze Script Editora. <span class="term-amber">PySide</span> (oficjalne bindingi Pythona do biblioteki Qt) to standard, w którym niemal każdy DCC pozwala budować własne okna, dokładnie w tym samym języku, którego używa reszta narzędzia. Sama technologia nie gwarantuje jednak niczego — dobre i złe narzędzia bywają zbudowane w dokładnie tym samym toolkicie. Różnica leży w decyzjach projektowych, nie w bibliotece.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Interfejs jako model myślenia artysty</div>
+    <h2>Pokaż to, co już wiesz — nie pytaj ponownie</h2>
+    <p>Najczęstszy błąd początkującego narzędzia to okno, które odzwierciedla wewnętrzną strukturę kodu, zamiast pytania, jakie faktycznie zadaje sobie artysta. Narzędzie z Rozdziału 15 już wie, w jakim jest showcie, shocie i tasku — dobry interfejs pokazuje to jako informację, nie prosi o ponowne wpisanie. Podobnie numer kolejnej wersji: skoro narzędzie potrafi go wyliczyć samo, artysta nie powinien go wpisywać ręcznie — powinien go zobaczyć, gotowego, z możliwością kliknięcia „Publish" bez dotykania niczego innego.</p>
+
+    <div class="diagram-frame">
+      <div class="diagram-hud"><span>UI.wireframe</span><span>Okno Publish, dobre domyślne</span></div>
+      <svg viewBox="0 0 640 300" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="10" width="380" height="280" rx="8" fill="#20242c" stroke="#ecebe4" stroke-opacity="0.5"/>
+        <rect x="20" y="10" width="380" height="34" rx="8" fill="#1b1e24" stroke="#ecebe4" stroke-opacity="0.3"/>
+        <text x="40" y="32" font-family="IBM Plex Sans" font-size="12.5" font-weight="600" fill="#ecebe4">Publish</text>
+
+        <rect x="40" y="58" width="340" height="40" rx="6" fill="#171b21" stroke="#2a2f38"/>
+        <text x="52" y="83" font-family="IBM Plex Mono" font-size="11" fill="#8b909b">hero_char / rig / shot0100</text>
+
+        <text x="40" y="122" font-family="IBM Plex Sans" font-size="11.5" fill="#8b909b">Wersja</text>
+        <rect x="40" y="130" width="150" height="30" rx="6" fill="#171b21" stroke="#2a2f38"/>
+        <text x="52" y="150" font-family="IBM Plex Mono" font-size="11" fill="#8b909b">v035 (auto)</text>
+
+        <text x="40" y="182" font-family="IBM Plex Sans" font-size="11.5" fill="#8b909b">Komentarz (opcjonalnie)</text>
+        <rect x="40" y="190" width="340" height="30" rx="6" fill="#171b21" stroke="#2a2f38"/>
+
+        <rect x="270" y="238" width="110" height="34" rx="6" fill="#20242c" stroke="#e8a33d" stroke-width="1.5"/>
+        <text x="325" y="260" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="#e8a33d" font-weight="600">Publish</text>
+        <rect x="150" y="238" width="100" height="34" rx="6" fill="#20242c" stroke="#2a2f38"/>
+        <text x="200" y="260" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="#8b909b">Anuluj</text>
+
+        <g font-family="IBM Plex Mono" font-size="10.5" fill="#4fc3c0">
+          <text x="420" y="80">← kontekst wykryty automatycznie,</text>
+          <text x="420" y="94">nie do edycji</text>
+          <text x="420" y="148">← wypełnione samo, nikt nie liczy</text>
+          <text x="420" y="162">wersji ręcznie</text>
+          <text x="420" y="256">← jedno kliknięcie do celu,</text>
+          <text x="420" y="270">jeśli wszystko OK</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Zawieszone okno wygląda jak awaria</div>
+    <h2>Feedback podczas długiej operacji nie jest opcjonalny</h2>
+    <p>Publikacja z Rozdziału 7 bywa operacją trwającą kilkadziesiąt sekund — eksport geometrii, zapis przez Perforce, aktualizacja systemu śledzenia. Jeśli w tym czasie okno narzędzia nie reaguje na żaden ruch myszy, artysta prawie zawsze zakłada, że coś się zawiesiło, i wymusza zamknięcie programu — tracąc niezapisaną pracę, której samo narzędzie nie miało nic wspólnego z powodowaniem. Dlatego każda operacja dłuższa niż ułamek sekundy potrzebuje paska postępu albo choćby prostego komunikatu „trwa publikacja".</p>
+    <p>To nie jest tylko kwestia estetyki. Interfejs Qt działa w tej samej głównej pętli zdarzeń, co reszta DCC — jeśli operacja publikacji zostanie napisana tak, że blokuje tę pętlę zamiast działać w tle, naprawdę zamraża całą aplikację, nie tylko okno narzędzia. Artysta, który w tym momencie próbuje kliknąć gdziekolwiek indziej w Mayi, dostaje potwierdzenie swoich najgorszych podejrzeń. Poprawnie napisane narzędzie przenosi taką operację do osobnego wątku, żeby reszta programu — i sam pasek postępu — mogła nadal odpowiadać.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>PySide / Qt</dt>
+      <dd>Biblioteka do budowy interfejsów graficznych, standardowo osadzona w większości DCC.</dd>
+      <dt>Wartość domyślna</dt>
+      <dd>Pole formularza wypełnione z góry sensowną wartością, żeby happy path wymagał minimum interakcji.</dd>
+      <dt>Event loop (pętla zdarzeń)</dt>
+      <dd>Mechanizm, w którym aplikacja czeka na i obsługuje zdarzenia (klik, ruch myszy); zablokowanie go zamraża cały program.</dd>
+      <dt>Wątek (thread)</dt>
+      <dd>Niezależna ścieżka wykonania kodu, pozwalająca długiej operacji nie blokować reszty interfejsu.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Narzędzie ma już logikę i twarz. Zostaje pytanie, jak sprawić, żeby dokładnie ta sama wersja tego narzędzia — i programu, w którym działa — uruchamiała się identycznie na trzystu różnych maszynach. Tym zajmuje się następny rozdział.</p>
   </div>
 
 <div class="site-nav chapter-nav">
