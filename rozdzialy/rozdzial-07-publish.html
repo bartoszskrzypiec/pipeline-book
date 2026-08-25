@@ -12,16 +12,107 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 07/22</span><span>CZĘŚĆ · II</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>WORK · hero_char_rig.mb</span><span>PUBLISH · hero_char_rig_v034.mb</span><span>STATUS · pending review</span>
   </div>
 
   <div class="eyebrow">Rozdział 7 / Dane i wersje</div>
   <h1>Publish: praca robocza kontra wersja zatwierdzona</h1>
   <p class="subtitle">Najważniejsze pojęcie w tej książce — granica między plikiem, w którym pracujesz, a wersją, którą zobaczy następny dział.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Publish to nie zapis pliku — to osobny, świadomy krok, który kopiuje czysty wynik pracy do wersjonowanej, publicznej lokalizacji i rejestruje go w systemie śledzenia.</li>
+      <li>Dzięki tej granicy artysta może swobodnie eksperymentować w pliku roboczym, nie martwiąc się, że popsuje coś innym — dopóki nie opublikuje, nikt inny tego nie widzi.</li>
+      <li>Kolejne działy nigdy nie otwierają cudzego pliku roboczego — ładują zawsze najnowszą (albo najnowszą zatwierdzoną) opublikowaną wersję przez dedykowane narzędzie, nigdy przez ręczne przeglądanie folderów.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Wracamy teraz do granicy, którą Rozdział 4 zarysował fizycznie jako dwa foldery, <code>work/</code> i <code>publish/</code>. Ten rozdział wyjaśnia, co dokładnie tę granicę przekracza i dlaczego — bo <em>publish</em> to prawdopodobnie najważniejsze pojedyncze pojęcie w całym pipeline. Jeśli zrozumiesz tylko jeden mechanizm z tej książki, niech to będzie ten.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Pod maską przycisku Publish</div>
+    <h2>To nie jest „Zapisz jako"</h2>
+    <p>Intuicyjnie „opublikować" brzmi jak „zapisać w innym miejscu". W praktyce publish to zwykle znacznie więcej niż kopiowanie pliku — to konkretna sekwencja kroków, wykonywana przez narzędzie pipeline'u, nie ręcznie przez artystę:</p>
+    <ul class="compact">
+      <li><strong>Eksport czystego wyniku</strong> — plik roboczy modelarki może zawierać dziesiątki tymczasowych obiektów, historii konstrukcyjnej, notatek. Publikacja rzadko kopiuje cały ten plik bezpośrednio — zamiast tego eksportuje z niego wyłącznie to, czego potrzebuje odbiorca, samą finalną geometrię, bez balastu.</li>
+      <li><strong>Nadanie numeru wersji</strong> — narzędzie samo odczytuje najwyższą istniejącą wersję w folderze <code>publish/</code> (Rozdział 4) i nadaje kolejną, bez udziału artysty w liczeniu.</li>
+      <li><strong>Zapis przez Perforce</strong> — sam plik trafia do depota jako nowy submit (Rozdział 6), więc dostaje pełną historię i jest odzyskiwalny.</li>
+      <li><strong>Rejestracja w systemie śledzenia</strong> — nowa wersja pojawia się w bazie produkcyjnej (Rozdział 8) jako fakt widoczny dla całego zespołu, nie tylko jako plik na dysku, o którego istnieniu trzeba komuś powiedzieć osobno.</li>
+    </ul>
+    <p>Dopiero wszystkie te kroki razem — nie sam zapis pliku — nazywają się publikacją.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Publikacja to nie zatwierdzenie</div>
+    <h2>Dwa osobne progi, nie jeden</h2>
+    <p>Łatwo założyć, że skoro coś zostało opublikowane, jest automatycznie gotowe do użycia. W wielu pipeline'ach to prawda dla wczesnych etapów produkcji — szybkość iteracji jest ważniejsza niż formalna kontrola. Ale przy elementach o dużym wpływie na resztę produkcji (hero asset, którego dotyczy setki shotów) dochodzi zwykle drugi próg: <span class="term-amber">zatwierdzenie</span> (approval) przez supervisora, osobne od samego publikowania. Artysta może publikować wersje robocze do przeglądu tyle razy, ile potrzebuje; dopiero jedna z nich, oznaczona jako zatwierdzona, staje się tą, którą inne działy pobierają domyślnie. Do tego mechanizmu — kto może zatwierdzać i jak wygląda taka bramka — wrócimy głębiej w Dodatku H.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Strona odbiorcy</div>
+    <h2>Nikt nie przegląda cudzych folderów</h2>
+    <p>Druga połowa tego mechanizmu dotyczy tego, jak opublikowana wersja trafia do kogoś innego. Artysta w dziale animacji, który chce wczytać rig postaci, nigdy nie otwiera ręcznie ścieżki na dysku i nie szuka najnowszego pliku po dacie modyfikacji. Używa narzędzia — loadera albo referencera — które zna konwencję z Rozdziału 4, odpytuje system śledzenia z Rozdziału 8 i automatycznie proponuje najnowszą zatwierdzoną wersję. To domyka pętlę z Rozdziału 3: shot <em>referuje</em> asset przez tę samą, przewidywalną ścieżkę, nigdy przez ręczne kopiowanie pliku ani zgadywanie, który plik jest aktualny.</p>
+
+    <div class="diagram-frame">
+      <div class="diagram-hud"><span>Publish.flow</span><span>Od pliku roboczego do innego działu</span></div>
+      <svg viewBox="0 0 780 170" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrPub" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+          </marker>
+        </defs>
+        <g font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+          <rect x="10" y="46" width="150" height="50" rx="8" fill="#20242c" stroke="#6e93be" stroke-opacity="0.6"/>
+          <text x="85" y="66" text-anchor="middle">Plik roboczy</text>
+          <text x="85" y="82" text-anchor="middle" fill="#8b909b">work/, wolna forma</text>
+
+          <circle cx="252" cy="71" r="42" fill="#20242c" stroke="#e8a33d" stroke-width="1.5"/>
+          <text x="252" y="67" text-anchor="middle" font-weight="600">Publish</text>
+          <text x="252" y="82" text-anchor="middle" fill="#8b909b" font-size="10.5">eksport + wersja</text>
+
+          <rect x="360" y="46" width="180" height="50" rx="8" fill="#20242c" stroke="#e8a33d" stroke-opacity="0.7"/>
+          <text x="450" y="66" text-anchor="middle">hero_char_rig_v034</text>
+          <text x="450" y="82" text-anchor="middle" fill="#8b909b">publish/, sztywna nazwa</text>
+
+          <rect x="600" y="46" width="170" height="50" rx="8" fill="#20242c" stroke="#9c82d8" stroke-opacity="0.7"/>
+          <text x="685" y="66" text-anchor="middle">Zarejestrowane</text>
+          <text x="685" y="82" text-anchor="middle" fill="#8b909b">w systemie śledzenia</text>
+        </g>
+        <line x1="160" y1="71" x2="208" y2="71" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrPub)"/>
+        <line x1="296" y1="71" x2="358" y2="71" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrPub)"/>
+        <line x1="540" y1="71" x2="598" y2="71" stroke="#9c82d8" stroke-width="2" marker-end="url(#arrPub)"/>
+        <text x="685" y="130" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#8b909b">↓ loader innego działu widzi tylko to</text>
+        <line x1="685" y1="96" x2="685" y2="145" stroke="#9c82d8" stroke-width="2" marker-end="url(#arrPub)"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dlaczego to działa</div>
+    <h2>Wracamy do chaosu z Rozdziału 1</h2>
+    <p>Warto na chwilę wrócić do sceny z pierwszego rozdziału i przepuścić ją przez ten mechanizm. Riger, zamiast szukać pliku z „FINAL" w nazwie na dysku sieciowym, otwiera loader, który pokazuje mu jedną, jednoznaczną, najnowszą zatwierdzoną wersję modelu — nie cztery kandydatki do zgadywania. Artysta teksturujący nie podmienia pliku pod tą samą nazwą — publikuje nową wersję, która dostaje własny numer i nie nadpisuje niczego, z czego ktoś już korzysta. Lighting artysta, który następnego dnia odpala ten sam render, wciąż widzi dokładnie tę wersję tekstury, którą zaakceptował dzień wcześniej — dopóki sam świadomie nie zaktualizuje swojej referencji do nowszej. Cały chaos z Rozdziału 1 rozbijał się o brak dokładnie tego mechanizmu.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Publish (publikacja)</dt>
+      <dd>Formalny krok eksportu, wersjonowania i rejestracji wyniku pracy jako dostępnego dla innych.</dd>
+      <dt>Approval (zatwierdzenie)</dt>
+      <dd>Osobny od publikacji krok, w którym supervisor oznacza konkretną wersję jako gotową do użycia downstream.</dd>
+      <dt>Loader / referencer</dt>
+      <dd>Narzędzie, przez które inne działy wczytują opublikowane wersje — nigdy przez ręczne przeglądanie dysku.</dd>
+      <dt>Latest approved version</dt>
+      <dd>Najnowsza wersja oznaczona jako zatwierdzona; domyślny wynik zapytania loadera, jeśli approval jest w użyciu.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Publikacja rejestruje fakt w systemie śledzenia — ale czym właściwie jest ten system i jak wygląda od strony supervisora, który musi ogarnąć status tysięcy tasków naraz? Następny rozdział pokazuje Shotgun/ShotGrid, ftrack i Kitsu.</p>
   </div>
 
 <div class="site-nav chapter-nav">
