@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipeline dla Artystów Technicznych — Spis treści</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.page{max-width:920px;padding:64px 24px 120px;}
+h1{line-height:1.1;}
+.subtitle{margin:0 0 40px;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="eyebrow">Pipeline / Spis treści</div>
+  <h1>Pipeline dla Artystów Technicznych</h1>
+  <p class="subtitle">Ta książka jest dla artystów, którzy chcą zrozumieć, jak w dużym studiu VFX i animacji tysiące osobnych plików — modeli, riggów, shotów, cache’ów symulacji — zamieniają się w jeden spójny film, bez chaosu i bez tego, żeby ktokolwiek nadpisał czyjąś pracę. To nie jest kurs programowania od zera — to wyjaśnienie mechanizmu: repozytoriów, wersjonowania, publikowania, customowych narzędzi i farmy renderowej, które razem tworzą to, co w studiach takich jak Weta Digital, ILM, Framestore, Pixar czy DNEG nazywa się po prostu „pipeline”. 22 rozdziały główne prowadzą przez ten mechanizm liniowo — od pytania, po co to w ogóle istnieje, aż po prześledzenie jednego shota przez cały pipeline na samym końcu. Dodatki A–V schodzą głębiej tam, gdzie rozdział główny musiał zatrzymać się na ogólnym mechanizmie — włącznie z serią „Studia w praktyce”, pokazującą, jak dokładnie te same problemy rozwiązały u siebie ILM, Pixar, Weta, Framestore/MPC/DNEG i inni. To żywy projekt: rozdziały i dodatki będą dopisywane i rozwijane sesja po sesji, nie powstały jednorazowo.</p>
+
+  <div class="part">
+    <div class="part-label amber">Zanim zaczniesz</div>
+    <div class="index-list">
+      <a class="index-row" href="podstawy/podstawy-narzedziowe.html"><span class="index-num">Podstawy narzędziowe</span><span class="index-title">Repozytorium, terminal, zmienna środowiskowa</span><span class="index-hook">Piętnaście minut, które wystarczą, żeby „sklonuj repo” i „zmienna środowiskowa” przestały być zaklęciami, które programiści rzucają na spotkaniach.</span></a>
+    </div>
+  </div>
+
+  <div class="part">
+    <div class="part-label">Część I · Dlaczego pipeline w ogóle istnieje (R.1–3)</div>
+    <div class="index-list">
+      <a class="index-row" href="rozdzialy/rozdzial-01-chaos-bez-pipeline.html"><span class="index-num">Rozdział 1</span><span class="index-title">Chaos bez pipeline'u</span><span class="index-hook">Zanim spojrzymy na jakiekolwiek narzędzie, zobaczmy, co dzieje się w produkcji bez pipeline'u — i dlaczego ten sam problem rozwiązano w każdym dużym studiu tak samo.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-02-anatomia-produkcji.html"><span class="index-num">Rozdział 2</span><span class="index-title">Anatomia produkcji: show, sequence, shot, task, asset</span><span class="index-hook">Słownik, bez którego żadne zdanie o pipeline nie ma sensu — jak film dzieli się na jednostki pracy, które da się przydzielić, śledzić i wersjonować.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-03-mapa-pipeline.html"><span class="index-num">Rozdział 3</span><span class="index-title">Mapa pipeline'u: od konceptu do finalnej klatki</span><span class="index-hook">Modeling, rigging, layout, animacja, fx, lighting, comp — jedna mapa pokazująca, co która komórka produkuje i dla kogo, zanim zejdziemy do szczegółów którejkolwiek z nich.</span></a>
+    </div>
+  </div>
+
+  <div class="part">
+    <div class="part-label">Część II · Dane: pliki, wersje, publikowanie (R.4–8)</div>
+    <div class="index-list">
+      <a class="index-row" href="rozdzialy/rozdzial-04-struktura-katalogow.html"><span class="index-num">Rozdział 4</span><span class="index-title">Struktura katalogów i konwencje nazewnictwa</span><span class="index-hook">Tysiąc artystów zapisujących pliki bez wspólnej reguły to gwarantowana katastrofa — jak nazwa pliku sama w sobie staje się metadanymi.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-05-dlaczego-git-nie-wystarcza.html"><span class="index-num">Rozdział 5</span><span class="index-title">Dlaczego Git nie wystarcza do plików VFX</span><span class="index-hook">Git świetnie radzi sobie z tekstem i różnicami linia po linii. Plik Maya na dwa gigabajty tego nie ma — i to jedna z tych rzeczy, które łamią intuicję programisty wchodzącego do VFX.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-06-perforce.html"><span class="index-num">Rozdział 6</span><span class="index-title">Perforce i wersjonowanie danych produkcyjnych</span><span class="index-hook">System, o którym artysta rzadko słyszy z nazwy, a używa go codziennie — checkout, submit i blokowanie plików binarnych na poziomie całego studia.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-07-publish.html"><span class="index-num">Rozdział 7</span><span class="index-title">Publish: praca robocza kontra wersja zatwierdzona</span><span class="index-hook">Najważniejsze pojęcie w tej książce — granica między plikiem, w którym pracujesz, a wersją, którą zobaczy następny dział.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-08-sledzenie-produkcji.html"><span class="index-num">Rozdział 8</span><span class="index-title">Śledzenie produkcji: Shotgun/ShotGrid, ftrack, Kitsu</span><span class="index-hook">Skąd supervisor wie, że Twój shot czeka na review — i jak status w przeglądarce zamienia się w plik na dysku.</span></a>
+    </div>
+  </div>
+
+  <div class="part">
+    <div class="part-label">Część III · Wersjonowanie kodu i praca zespołu pipeline (R.9)</div>
+    <div class="index-list">
+      <a class="index-row" href="rozdzialy/rozdzial-09-git-w-pipeline.html"><span class="index-num">Rozdział 9</span><span class="index-title">Git w pipeline: branch, merge i code review dla narzędzi</span><span class="index-hook">Ten sam Git, który nie nadaje się do pliku Maya, jest dokładnie tym, czego potrzeba do kodu narzędzi, które ten plik Maya otwierają.</span></a>
+    </div>
+  </div>
+
+  <div class="part">
+    <div class="part-label">Część IV · Wymiana danych między programami (R.10–13)</div>
+    <div class="index-list">
+      <a class="index-row" href="rozdzialy/rozdzial-10-alembic.html"><span class="index-num">Rozdział 10</span><span class="index-title">Alembic: cache geometrii między aplikacjami</span><span class="index-hook">Animacja policzona w jednym programie musi trafić bez zmian do drugiego — plik, który zamraża tylko kształt, nie recepturę na jego policzenie.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-11-usd.html"><span class="index-num">Rozdział 11</span><span class="index-title">USD: uniwersalny opis sceny</span><span class="index-hook">Jak złożyć środowisko z tysięcy assetów bez kopiowania ich do jednego pliku — problem, który Pixar rozwiązał dla siebie, a potem oddał całej branży.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-12-kolor-ocio-aces.html"><span class="index-num">Rozdział 12</span><span class="index-title">Kolor w pipeline: OpenColorIO i ACES od kuchni</span><span class="index-hook">Ten sam plik tekstury musi wyglądać identycznie w Mayi, Nuke i na sali projekcyjnej — to zadanie jednego configu, nie trzech osobnych ustawień.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-13-openexr-aov.html"><span class="index-num">Rozdział 13</span><span class="index-title">OpenEXR i AOV: obraz, który niesie więcej niż piksel</span><span class="index-hook">Beauty pass to dopiero początek — jeden plik EXR potrafi nieść dziesiątki warstw, które kompozytor złoży w cokolwiek zechce, długo po renderze.</span></a>
+    </div>
+  </div>
+
+  <div class="part">
+    <div class="part-label">Część V · Budowa customowych narzędzi (R.14–18)</div>
+    <div class="index-list">
+      <a class="index-row" href="rozdzialy/rozdzial-14-python.html"><span class="index-num">Rozdział 14</span><span class="index-title">Python jako wspólny język pipeline'u</span><span class="index-hook">Maya, Houdini, Nuke i Katana mówią różnymi dialektami tego samego języka — dlaczego to Python, a nie C++, zszywa cały pipeline w jedną całość.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-15-anatomia-narzedzia.html"><span class="index-num">Rozdział 15</span><span class="index-title">Anatomia narzędzia: od skryptu na biurku do przycisku w menu</span><span class="index-hook">Odległość między „działa u mnie” a „działa u trzystu osób” to więcej niż jedna funkcja — to cała warstwa, o której artysta nigdy nie myśli.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-16-interfejsy-pyside-qt.html"><span class="index-num">Rozdział 16</span><span class="index-title">Interfejsy dla artystów: PySide/Qt bez zgadywania</span><span class="index-hook">Narzędzie, które trzeba tłumaczyć na Slacku, jest złym narzędziem — jak projektuje się okno, które artysta rozumie bez czytania dokumentacji.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-17-zarzadzanie-srodowiskiem.html"><span class="index-num">Rozdział 17</span><span class="index-title">Zarządzanie środowiskiem: dlaczego każdy ma dokładnie te same wersje</span><span class="index-hook">„U mnie działa” nie może istnieć w studiu, gdzie ten sam show renderuje się na tysiącu maszyn naraz — po to istnieją menedżery pakietów pipeline'u.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-18-automatyzacja.html"><span class="index-num">Rozdział 18</span><span class="index-title">Automatyzacja: kiedy pipeline reaguje sam</span><span class="index-hook">Publikacja modelu, która sama generuje playblast i wysyła powiadomienie do riggingu — event, na który ktoś kiedyś napisał hook, i nikt już o tym nie myśli.</span></a>
+    </div>
+  </div>
+
+  <div class="part">
+    <div class="part-label">Część VI · Skalowanie produkcji (R.19–20)</div>
+    <div class="index-list">
+      <a class="index-row" href="rozdzialy/rozdzial-19-farma-renderowa.html"><span class="index-num">Rozdział 19</span><span class="index-title">Farma renderowa: kolejkowanie tysięcy zadań</span><span class="index-hook">Jeden shot to może być pięćset klatek na pięciuset maszynach naraz — kto decyduje, co renderuje się najpierw, gdy priorytetów jest więcej niż rdzeni CPU.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-20-storage-i-cache.html"><span class="index-num">Rozdział 20</span><span class="index-title">Storage i cache: dlaczego dysk potrafi być wolniejszy niż render</span><span class="index-hook">Petabajty danych i tysiąc maszyn czytających jednocześnie — architektura, w której najdroższym zasobem bywa nie moc obliczeniowa, tylko przepustowość do dysku.</span></a>
+    </div>
+  </div>
+
+  <div class="part">
+    <div class="part-label">Część VII · Ludzie i domknięcie (R.21–22)</div>
+    <div class="index-list">
+      <a class="index-row" href="rozdzialy/rozdzial-21-pipeline-td.html"><span class="index-num">Rozdział 21</span><span class="index-title">Pipeline TD: kto to jest i jak z nim pracować</span><span class="index-hook">Osoba, do której piszesz, gdy narzędzie się wywala — czym różni się jej praca od pracy artysty i programisty, i dlaczego jest trochę jednym i drugim.</span></a>
+      <a class="index-row" href="rozdzialy/rozdzial-22-epilog.html"><span class="index-num">Rozdział 22</span><span class="index-title">Epilog: jeden shot, cały pipeline</span><span class="index-hook">Zaczęliśmy od pojedynczego pliku bez żadnej struktury. Kończymy, śledząc jeden shot przez każdy system z tej książki — od pierwszego szkicu do klatki w kinie.</span></a>
+    </div>
+  </div>
+
+  <p class="subtitle">Dodatki poniżej nie trzeba czytać w kolejności liter — każdy rozwija jeden konkretny fragment rozdziału głównego i można wchodzić do nich z dowolnego miejsca, tam gdzie akurat brakuje Ci głębi. Litera to tylko adres, nie kolejność czytania.</p>
+
+  <div class="part">
+    <div class="part-label violet">Dodatki A–H · Głębiej w dane i wersjonowanie</div>
+    <div class="index-list">
+      <a class="index-row" href="dodatki/dodatek-a-perforce-vs-git.html"><span class="index-num">Dodatek A</span><span class="index-title">Perforce vs Git: dwie filozofie kontroli wersji</span><span class="index-hook">Git zakłada, że każdy może edytować ten sam plik naraz i połączyć zmiany później. Dla trzygigabajtowej sceny w Mayi to założenie po prostu nie działa.</span></a>
+      <a class="index-row" href="dodatki/dodatek-b-usd-w-glebi.html"><span class="index-num">Dodatek B</span><span class="index-title">USD w głębi: warstwy, referencje, payloads, warianty</span><span class="index-hook">Rozdział 11 pokazał USD jako czarną skrzynkę, która „jakoś” składa scenę. Ten dodatek otwiera composition arcs krok po kroku, na konkretnym przykładzie.</span></a>
+      <a class="index-row" href="dodatki/dodatek-c-alembic-vs-usd.html"><span class="index-num">Dodatek C</span><span class="index-title">Alembic kontra USD: kiedy które</span><span class="index-hook">Oba zamrażają geometrię w czasie, ale jeden z nich potrafi więcej niż tylko cache'ować kształt — kiedy ta różnica ma znaczenie, a kiedy jest tylko teorią.</span></a>
+      <a class="index-row" href="dodatki/dodatek-d-architektura-ocio.html"><span class="index-num">Dodatek D</span><span class="index-title">Architektura configu OpenColorIO</span><span class="index-hook">Rozdział 12 użył configu OCIO jak gotowego narzędzia. Tu rozkładamy go na czynniki pierwsze: colorspace, role, transformy, wyszukiwanie ścieżki.</span></a>
+      <a class="index-row" href="dodatki/dodatek-e-openexr-od-srodka.html"><span class="index-num">Dodatek E</span><span class="index-title">OpenEXR od środka: kompresja, multipart, deep pixels</span><span class="index-hook">Jeden plik, który potrafi ważyć dwa megabajty albo dwa gigabajty w zależności od jednego ustawienia kompresji — i dlaczego „deep” EXR to zupełnie inny plik niż zwykły.</span></a>
+      <a class="index-row" href="dodatki/dodatek-f-shotgrid-api.html"><span class="index-num">Dodatek F</span><span class="index-title">Schemat i eventy Shotgun/ShotGrid API</span><span class="index-hook">Rozdział 8 pokazał, jak status w przeglądarce trafia na dysk. Ten dodatek pokazuje mechanizm: schemat encji i triggery reagujące na zmianę pola.</span></a>
+      <a class="index-row" href="dodatki/dodatek-g-cache-grafy-zaleznosci.html"><span class="index-num">Dodatek G</span><span class="index-title">Cache'owanie i grafy zależności w pipeline</span><span class="index-hook">Kiedy zmienia się jeden asset niskiego poziomu, pipeline musi wiedzieć dokładnie, co przebudować, a czego nie ruszać — dokładnie ten sam problem, który rozwiązuje make.</span></a>
+      <a class="index-row" href="dodatki/dodatek-h-bezpieczenstwo-uprawnienia.html"><span class="index-num">Dodatek H</span><span class="index-title">Bezpieczeństwo i uprawnienia: kto może opublikować finalną wersję</span><span class="index-hook">Nie każdy artysta powinien móc nadpisać wersję, którą ogląda klient — gate'y zatwierdzeń i uprawnienia na poziomie zadania, nie tylko pliku.</span></a>
+    </div>
+  </div>
+
+  <div class="part">
+    <div class="part-label violet">Dodatki I–N · Głębiej w narzędzia i skalowanie</div>
+    <div class="index-list">
+      <a class="index-row" href="dodatki/dodatek-i-rez-menedzery-pakietow.html"><span class="index-num">Dodatek I</span><span class="index-title">Rez i menedżery pakietów</span><span class="index-hook">Trzysta stacji roboczych, ten sam show, dokładnie ta sama wersja Houdiniego i tego samego pluginu na każdej z nich — bez tego żaden render nie jest powtarzalny.</span></a>
+      <a class="index-row" href="dodatki/dodatek-j-maya-api.html"><span class="index-num">Dodatek J</span><span class="index-title">Maya API: MFnPlugin, callbacki, customowe node'y</span><span class="index-hook">Rozdział 15 pokazał tool jako menu w Mayi. Ten dodatek schodzi niżej — do node'ów i callbacków, z których taki tool jest w środku zbudowany.</span></a>
+      <a class="index-row" href="dodatki/dodatek-k-houdini-hda.html"><span class="index-num">Dodatek K</span><span class="index-title">Houdini i HDA: pipeline dla FX i geometrii proceduralnej</span><span class="index-hook">Digital Asset to węzeł, który artysta może opublikować i przekazać dalej jak każdy inny plik — most między proceduralną siecią a resztą pipeline'u.</span></a>
+      <a class="index-row" href="dodatki/dodatek-l-nuke-gizmos.html"><span class="index-num">Dodatek L</span><span class="index-title">Nuke: gizmos, szablony i grupy w kompozytingu</span><span class="index-hook">Setka nodów kompozytingowych powtarzana w każdym shocie to błąd, nie praktyka — gizmo zamyka je w jednym, wersjonowanym bloku.</span></a>
+      <a class="index-row" href="dodatki/dodatek-m-deadline-tractor-opencue.html"><span class="index-num">Dodatek M</span><span class="index-title">Deadline, Tractor, OpenCue: trzy podejścia do kolejki renderu</span><span class="index-hook">Ten sam problem — tysiąc zadań, ograniczona liczba maszyn — rozwiązany trzy razy inaczej przez trzy różne studia.</span></a>
+      <a class="index-row" href="dodatki/dodatek-n-ci-dla-pipeline.html"><span class="index-num">Dodatek N</span><span class="index-title">Continuous Integration dla pipeline'u</span><span class="index-hook">Narzędzie używane przez cały show nie może zepsuć się w środku dnia — jak pipeline testuje sam siebie, zanim zmiana trafi do artystów.</span></a>
+    </div>
+  </div>
+
+  <div class="part">
+    <div class="part-label amber">Wykład: Studia w praktyce (O–S)</div>
+    <p class="subtitle">Pięć części, jedno pytanie: jak ten sam mechanizm z rozdziałów głównych wygląda naprawdę, gdy zbudować go musi konkretne studio, pod konkretny film, z konkretnym budżetem czasu. Nie trzeba czytać po kolei — każda część stoi osobno.</p>
+    <div class="index-list">
+      <a class="index-row" href="dodatki/dodatek-o-studia-czesc1-ilm.html"><span class="index-num">Dodatek O</span><span class="index-title">Studia w praktyce, część 1: ILM — narodziny przemysłu</span><span class="index-hook">Zanim pipeline miał nazwę, ktoś musiał wynaleźć format pliku na obraz z ruchomym przecinkiem — historia studia, które budowało infrastrukturę, bo nie było jej skąd wziąć.</span></a>
+      <a class="index-row" href="dodatki/dodatek-p-studia-czesc2-pixar.html"><span class="index-num">Dodatek P</span><span class="index-title">Studia w praktyce, część 2: Pixar — pipeline jako produkt</span><span class="index-hook">Jedyne studio na tej liście, które swój wewnętrzny pipeline (USD) oddało całej branży za darmo — i dlaczego to się im opłacało.</span></a>
+      <a class="index-row" href="dodatki/dodatek-q-studia-czesc3-weta.html"><span class="index-num">Dodatek Q</span><span class="index-title">Studia w praktyce, część 3: Weta Digital — skala Avatara</span><span class="index-hook">Setki tysięcy assetów lasu, każdy inny, żaden ręcznie nieumieszczony — pipeline zaprojektowany pod produkcję, w której ręczna praca fizycznie się nie mieści w budżecie czasu.</span></a>
+      <a class="index-row" href="dodatki/dodatek-r-studia-czesc4-framestore-mpc-dneg.html"><span class="index-num">Dodatek R</span><span class="index-title">Studia w praktyce, część 4: Framestore, MPC, DNEG — pipeline wielu show'ów naraz</span><span class="index-hook">Duże studio rzadko robi jeden film na raz — jak jeden dział pipeline'u obsługuje dziesięć produkcji i cztery kontynenty jednocześnie, bez dziesięciu różnych systemów.</span></a>
+      <a class="index-row" href="dodatki/dodatek-s-studia-czesc5-animal-logic-usd.html"><span class="index-num">Dodatek S</span><span class="index-title">Studia w praktyce, część 5: poza Pixarem — Animal Logic i konsorcjum USD</span><span class="index-hook">USD wygrało nie dlatego, że Pixar tak kazał, tylko dlatego, że reszta branży dobrowolnie dołączyła do wspólnego standardu — pipeline studia, które nie napisało USD, ale w pełni na nim stoi.</span></a>
+    </div>
+  </div>
+
+  <div class="part">
+    <div class="part-label violet">Dodatki T–V · Przyszłość i praktyka zawodowa</div>
+    <div class="index-list">
+      <a class="index-row" href="dodatki/dodatek-t-cloud-rendering.html"><span class="index-num">Dodatek T</span><span class="index-title">Cloud rendering: farma, która nie stoi w budynku studia</span><span class="index-hook">Rozdział 19 zakładał farmę pod tym samym dachem co artyści. Co się zmienia, kiedy te maszyny stoją w cudzym centrum danych tysiące kilometrów dalej.</span></a>
+      <a class="index-row" href="dodatki/dodatek-u-motion-capture-pipeline.html"><span class="index-num">Dodatek U</span><span class="index-title">Motion capture pipeline: od volumu do riga</span><span class="index-hook">Aktor w garniturze z markerami to dopiero początek — dane z volumu przechodzą przez własny, osobny łańcuch czyszczenia i retargetingu, zanim trafią do riga postaci.</span></a>
+      <a class="index-row" href="dodatki/dodatek-v-studia-przypadkow-awarii.html"><span class="index-num">Dodatek V</span><span class="index-title">Studia przypadków: co się psuje, gdy pipeline zawodzi</span><span class="index-hook">Najwięcej o architekturze systemu mówią jego realne awarie — kilka anonimowych historii typu „publish nadpisał cudzą wersję” i co z nich wynika na przyszłość.</span></a>
+    </div>
+  </div>
+
+  <div class="part">
+    <div class="part-label">Pomocnik praktyczny</div>
+    <div class="index-list">
+      <a class="index-row" href="pomocnik/pomocnik-mini-pipeline-tom-1.html"><span class="index-num">Tom 1</span><span class="index-title">Zbuduj mini-pipeline od zera</span><span class="index-hook">Te same tematy co w rozdziałach 4, 7, 9 i 15–16, ale tym razem piszesz kod: prosty publish script, hook do niego i okienko PySide, które to wszystko spina — krok po kroku.</span></a>
+    </div>
+  </div>
+
+  <div class="footer-note">Cała treść w tym repozytorium to statyczne pliki HTML — nie wymagają żadnego serwera do działania. Rozdziały i dodatki są dopiero szkieletem: tytuły, struktura i zajawki są ustalone, treść dopisywana jest sesja po sesji.</div>
+
+</div>
+</body>
+</html>
