@@ -12,16 +12,46 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · M</span><span>EXT OF · Rozdział 19</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · M</span><span>SYSTEMY · Deadline / Tractor / OpenCue</span><span>EXT OF · Rozdział 19</span>
   </div>
 
-  <div class="eyebrow">Dodatek M / Głębiej</div>
+  <div class="eyebrow">Dodatek M / Głębiej: Skalowanie</div>
   <h1>Deadline, Tractor, OpenCue: trzy podejścia do kolejki renderu</h1>
   <p class="subtitle">Ten sam problem — tysiąc zadań, ograniczona liczba maszyn — rozwiązany trzy razy inaczej przez trzy różne studia.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Wszystkie trzy systemy zbudowane są wokół tego samego szkieletu z Rozdziału 19: centralny scheduler z bazą stanu zadań plus lekki agent uruchomiony na każdym węźle farmy.</li>
+      <li>Główna oś różnicy to pochodzenie i model licencyjny, nie architektura — Deadline komercyjny i wszechstronny od razu po instalacji, Tractor wywodzący się z wewnętrznych potrzeb Pixara, OpenCue w pełni otwarty, zbudowany pod bardzo dużą skalę w Sony Pictures Imageworks.</li>
+      <li>Wybór między nimi bywa w praktyce decyzją biznesową — koszt licencji, dostępność wsparcia, gotowe integracje z konkretnymi rendererami — nie architektoniczną.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 19 wspomniał te trzy nazwy przy okazji opisu kolejki farmy renderowej, nie wchodząc w to, czym się różnią. Ten dodatek pokazuje, że różnica jest mniejsza, niż sugerowałyby trzy osobne nazwy — bo wszystkie rozwiązują dokładnie ten sam problem tym samym, sprawdzonym wzorcem.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Wspólny szkielet</div>
+    <h2>Scheduler, baza, agent — zawsze te trzy elementy</h2>
+    <p>Każdy z tych systemów ma centralny <span class="term-amber">scheduler</span> decydujący o kolejności i przydziale zadań (dokładnie to, co Rozdział 19 opisał jako priorytetyzację), bazę danych przechowującą stan każdego joba i taska, oraz lekki proces <span class="term-cyan">agenta</span> (worker, blade, RQD — nazwa różni się między systemami) uruchomiony na każdej maszynie farmy, który odbiera przydzielone zadania, wykonuje je lokalnie i zgłasza wynik z powrotem do centrali. To dokładnie ten sam trójdzielny wzorzec za każdym razem — różnią się nazwy komponentów, nie ich role.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Trzy pochodzenia</div>
+    <h2>Skąd się wzięły i dla kogo są</h2>
+    <ul class="compact">
+      <li><strong>Deadline</strong> (AWS Thinkbox) — komercyjny, z gotowymi integracjami dla bardzo szerokiej listy rendererów i DCC od razu po instalacji; częsty wybór mniejszych i średnich studiów, które nie chcą budować własnych integracji od zera, oraz coraz częściej środowisk chmurowych dzięki bliskiej integracji z AWS.</li>
+      <li><strong>Tractor</strong> — rozwijany wewnętrznie w Pixarze na potrzeby własnych produkcji, później udostępniony poza studiem; zadania definiuje się jako skrypty opisujące graf komend do wykonania, co odzwierciedla korzenie systemu jako narzędzia budowanego przez i dla technicznie zaawansowanego zespołu.</li>
+      <li><strong>OpenCue</strong> — zbudowany w Sony Pictures Imageworks pod potrzeby bardzo dużej skali, udostępniony jako w pełni otwarte źródło (dziś rozwijany pod parasolem Linux Foundation / Academy Software Foundation). Brak kosztu licencji czyni go atrakcyjnym wyborem dla studiów, które chcą uniknąć opłat za maszynę czy rdzeń przy bardzo dużych farmach.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Więc która różnica ma znaczenie</div>
+    <h2>Wybór biznesowy, nie architektoniczny</h2>
+    <p>Skoro architektura jest w gruncie rzeczy wspólna, decyzja, którego systemu użyć, sprowadza się w praktyce do pytań spoza tej książki: ile kosztuje licencja przy skali danego studia, jak dobre jest wsparcie techniczne, czy zespół ma kompetencje, żeby utrzymać w pełni otwarte narzędzie samodzielnie zamiast polegać na wsparciu producenta. To dobra ilustracja szerszej zasady z tej książki: wiele pozornie różnych narzędzi w VFX to w istocie ten sam mechanizm, ubrany w inną nazwę i inny model biznesowy wokół niego.</p>
   </div>
 
 <div class="site-nav">
