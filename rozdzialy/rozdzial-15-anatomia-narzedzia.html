@@ -12,16 +12,86 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 15/22</span><span>CZĘŚĆ · V</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>SKRYPT · publish_model.py</span><span>UŻYTKOWNICY · 1 → 340</span><span>STATUS · w drodze do menu</span>
   </div>
 
   <div class="eyebrow">Rozdział 15 / Narzędzia</div>
   <h1>Anatomia narzędzia: od skryptu na biurku do przycisku w menu</h1>
-  <p class="subtitle">Odległość między „działa u mnie” a „działa u trzystu osób” to więcej niż jedna funkcja — to cała warstwa, o której artysta nigdy nie myśli.</p>
+  <p class="subtitle">Odległość między „działa u mnie" a „działa u trzystu osób" to więcej niż jedna funkcja — to cała warstwa, o której artysta nigdy nie myśli.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Skrypt, który działa na komputerze autora, i narzędzie, z którego korzysta cały dział, dzieli więcej niż interfejs — to różnica w założeniach o tym, kto go uruchomi i co pójdzie nie tak.</li>
+      <li>Prawdziwe studyjne narzędzie odczytuje kontekst automatycznie z konwencji z Rozdziału 4, zamiast z wpisanej na sztywno ścieżki, i reaguje na błąd czytelnym komunikatem, nie tracebackiem Pythona.</li>
+      <li>Ostatni krok tej drogi jest dla artysty najbardziej widoczny: to samo narzędzie musi dać się kliknąć, nie tylko uruchomić ze Script Editora — tym zajmuje się Rozdział 16.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Znasz już język (Rozdział 14). Ten rozdział pokazuje, co dzieje się między napisaniem działającego skryptu a momentem, w którym trzysta osób klika go codziennie, nie wiedząc nawet, że pod spodem jest Python. To odległość, którą łatwo pominąć, planując narzędzie — a to właśnie w niej mieści się większość realnej pracy pipeline TD.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Co odróżnia skrypt od narzędzia</div>
+    <h2>Ten sam efekt, inne założenia o użytkowniku</h2>
+    <p>Skrypt napisany „dla siebie" i narzędzie oddane działowi robią często dokładnie to samo — ale opierają się na zupełnie innych założeniach o tym, kto je uruchomi i w jakich warunkach.</p>
+
+    <div style="display:flex;gap:20px;flex-wrap:wrap;margin:24px 0;">
+      <div style="flex:1;min-width:260px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--raster);text-transform:uppercase;margin-bottom:12px;">Skrypt na biurku</div>
+        <ul style="margin:0;padding-left:18px;color:var(--text);">
+          <li>Ścieżki wpisane na sztywno w kodzie</li>
+          <li>Zakłada konkretne, znane zaznaczenie</li>
+          <li>Błąd kończy się tracebackiem Pythona</li>
+          <li>Uruchamia go wyłącznie autor</li>
+        </ul>
+      </div>
+      <div style="flex:1;min-width:260px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-bottom:12px;">Narzędzie studyjne</div>
+        <ul style="margin:0;padding-left:18px;color:var(--text);">
+          <li>Ścieżki budowane z szablonu (Rozdział 4)</li>
+          <li>Samo odczytuje kontekst bieżącej sceny</li>
+          <li>Błąd to czytelny komunikat, nie traceback</li>
+          <li>Uruchamiają go setki osób dziennie</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Generalizacja kontekstu</div>
+    <h2>Skąd narzędzie wie, gdzie jest</h2>
+    <p>Osobisty skrypt zwykle zaczyna się od ścieżki wpisanej wprost w kodzie — działa, bo autor wie, gdzie leży jego plik. Narzędzie studyjne nie ma tego luksusu: musi samo ustalić, w jakim showcie, shocie i tasku aktualnie pracuje artysta, i zbudować właściwą ścieżkę z szablonu z Rozdziału 4, zamiast z niczego nie domyślać się na stałe. To właśnie ta zmiana — z „wiem, gdzie to jest" na „umiem to znaleźć samodzielnie, niezależnie od tego, kto mnie uruchamia i gdzie" — jest sercem uogólnienia skryptu do narzędzia.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Nieszczęśliwa ścieżka</div>
+    <h2>Programista sam sobie radzi, artysta nie</h2>
+    <p>Kiedy osobisty skrypt się wywala, autor czyta traceback, poprawia linijkę i uruchamia ponownie — to dla niego rutyna. Artysta, który nie zna Pythona, widząc ten sam czerwony tekst w konsoli, nie ma z niego żadnej użytecznej informacji — wie tylko, że coś nie działa, i musi napisać do kogoś z pipeline'u, zwykle nie mówiąc nic więcej niż „narzędzie się wysypało". Dlatego narzędzie studyjne musi jawnie sprawdzać sytuacje, które osobisty skrypt może bezpiecznie zignorować: czy coś jest zaznaczone, czy folder publikacji istnieje, czy plik nie jest akurat zablokowany przez kogoś innego (Rozdział 6) — i przy każdej z nich pokazać zdanie w języku, który artysta zrozumie, zamiast stosu wywołań funkcji.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Pakowanie i dystrybucja</div>
+    <h2>Ostatni krok, zanim ktokolwiek to kliknie</h2>
+    <p>Gotowy, odporny na błędy skrypt wciąż nie jest jeszcze narzędziem — musi dotrzeć na każdą stację roboczą w dokładnie tej samej wersji, ładować się automatycznie przy starcie DCC, i pojawić się w miejscu, gdzie artysta go faktycznie znajdzie. Tym, jak kod trafia na trzysta maszyn naraz w spójnej wersji, zajmuje się Rozdział 17; tym, jak zamienia się w przycisk zamiast linijki do wklejenia w Script Editorze — Rozdział 16, zaraz dalej.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Hardcoded value (wartość na sztywno)</dt>
+      <dd>Wartość wpisana wprost w kodzie zamiast odczytana z kontekstu czy konfiguracji.</dd>
+      <dt>Defensive programming</dt>
+      <dd>Jawne sprawdzanie warunków brzegowych i błędów, zanim doprowadzą do awarii.</dd>
+      <dt>Traceback</dt>
+      <dd>Techniczny zrzut stosu wywołań pokazywany przez Pythona przy błędzie — nieczytelny dla nie-programisty.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Odporne na błędy narzędzie wciąż potrzebuje twarzy. Następny rozdział pokazuje, jak buduje się interfejsy w PySide/Qt tak, żeby artysta zrozumiał je bez czytania dokumentacji.</p>
   </div>
 
 <div class="site-nav chapter-nav">
