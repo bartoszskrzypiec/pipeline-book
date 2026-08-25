@@ -12,16 +12,42 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · J</span><span>EXT OF · Rozdział 15</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · J</span><span>API · OpenMaya</span><span>EXT OF · Rozdział 15</span>
   </div>
 
-  <div class="eyebrow">Dodatek J / Głębiej</div>
+  <div class="eyebrow">Dodatek J / Głębiej: Narzędzia</div>
   <h1>Maya API: MFnPlugin, callbacki, customowe node'y</h1>
   <p class="subtitle">Rozdział 15 pokazał tool jako menu w Mayi. Ten dodatek schodzi niżej — do node'ów i callbacków, z których taki tool jest w środku zbudowany.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Maya ma dwie warstwy API: <code>cmds</code>/pymel do prostego skryptowania istniejących poleceń, i niższy poziom (OpenMaya) do pisania własnych, nowych typów node'ów i komend.</li>
+      <li>Plugin rejestruje nowe typy przez <code>MFnPlugin</code> w funkcji <code>initializePlugin()</code> — to mechanizm, którym pipeline dodaje do Mayi coś, czego ona sama nie ma.</li>
+      <li>Callbacki pozwalają podpiąć własny kod pod wewnętrzne zdarzenia Mayi — otwarcie pliku, zapis sceny — i to właśnie tędy hooki z Rozdziału 18 wchodzą fizycznie do wnętrza programu.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 14 pokazał <code>maya.cmds</code> jako sposób sterowania Mayą z Pythona — proste funkcje odpowiadające temu, co i tak dałoby się zrobić ręcznie w interfejsie. Ten dodatek pokazuje drugą, głębszą warstwę: API, przez które pipeline nie tylko steruje Mayą, ale rozszerza ją o rzeczy, których domyślnie nie ma.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dwie warstwy API</div>
+    <h2>cmds do sterowania, OpenMaya do rozszerzania</h2>
+    <p><code>maya.cmds</code> (i pymel, jego bardziej obiektowa nakładka) to warstwa poleceń — <code>cmds.polyCube()</code>, <code>cmds.ls()</code> — odpowiadająca bezpośrednio akcjom dostępnym w interfejsie. Wystarcza do większości narzędzi z Rozdziału 15: publikacji, loaderów, walidacji. <span class="term-amber">OpenMaya</span> (<code>maya.api.OpenMaya</code>) to niższy poziom, dający bezpośredni dostęp do wewnętrznego grafu sceny Mayi (DAG) i pozwalający na coś, czego <code>cmds</code> nie umożliwia: definiowanie zupełnie nowych typów node'ów i komend, których Maya nigdy wcześniej nie znała.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: MFnPlugin</div>
+    <h2>Jak Maya uczy się nowego node'a</h2>
+    <p>Plugin — moduł, który Maya ładuje przy starcie albo na żądanie — rejestruje swoje nowe typy w funkcji <code>initializePlugin()</code>, wywołując <code>MFnPlugin.registerNode()</code> dla nowego typu node'a albo <code>registerCommand()</code> dla nowej komendy. Pipeline korzysta z tego mechanizmu, kiedy potrzebuje czegoś strukturalnie nowego, nie tylko nowego skryptu — na przykład customowego node'a, który wewnątrz sceny Mayi wie, jak rozwiązać opublikowaną ścieżkę assetu (Rozdział 7) do aktualnej, zatwierdzonej wersji, bez potrzeby ręcznego re-linkowania przez artystę za każdym razem, gdy powstanie nowa publikacja.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Callbacki</div>
+    <h2>Gdzie hooki z Rozdziału 18 wchodzą do środka programu</h2>
+    <p>Maya pozwala zarejestrować funkcję, która odpali się automatycznie przy konkretnym wewnętrznym zdarzeniu — <code>MSceneMessage.addCallback()</code> z odpowiednim typem zdarzenia, np. <code>kBeforeSave</code> (tuż przed zapisem sceny) albo <code>kAfterOpen</code> (zaraz po otwarciu pliku). To dokładnie mechanizm, którym hooki z Rozdziału 18 wchodzą fizycznie do wnętrza samego DCC: walidacja konwencji nazewnictwa (Rozdział 4) uruchamiana automatycznie tuż przed każdym zapisem, albo automatyczne ustawienie właściwego configu OCIO (Rozdział 12) w momencie otwarcia pliku showu — bez udziału artysty i bez konieczności pamiętania, żeby cokolwiek kliknąć ręcznie.</p>
   </div>
 
 <div class="site-nav">
