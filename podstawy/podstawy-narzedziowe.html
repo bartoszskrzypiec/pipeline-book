@@ -12,16 +12,77 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>PRIMER · Zanim zaczniesz</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>PRIMER · Zanim zaczniesz</span><span>POJĘĆ · 4</span><span>CZAS · ~15 minut</span>
   </div>
 
   <div class="eyebrow">Zanim zaczniesz</div>
   <h1>Podstawy narzędziowe: repozytorium, terminal, zmienna środowiskowa</h1>
-  <p class="subtitle">Piętnaście minut, które wystarczą, żeby „sklonuj repo”, „commit” i „zmienna środowiskowa” przestały być zaklęciami, które programiści rzucają na spotkaniach.</p>
+  <p class="subtitle">Piętnaście minut, które wystarczą, żeby „sklonuj repo", „commit" i „zmienna środowiskowa" przestały być zaklęciami, które programiści rzucają na spotkaniach.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten primer jeszcze nie został napisany. Treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>To nie jest kurs programowania — to słownik czterech pojęć, które pojawiają się w tej książce od pierwszego rozdziału, wyjaśnionych raz, porządnie, zanim zaczniesz czytać.</li>
+      <li>Terminal, repozytorium, zmienna środowiskowa i API brzmią bardziej onieśmielająco, niż w rzeczywistości są.</li>
+      <li>Jeśli już je znasz, śmiało pomiń ten rozdział i zacznij od Rozdziału 1.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Ta książka nie zakłada, że umiesz programować — ale zakłada, że rozumiesz kilka pojęć, których programiści używają tak swobodnie, że rzadko ktoś zatrzymuje się, żeby je wytłumaczyć. Ten krótki wstęp robi dokładnie to, raz, w jednym miejscu, żeby żaden z kolejnych 22 rozdziałów nie musiał się już do tego cofać.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Pojęcie 1</div>
+    <h2>Terminal — pisanie poleceń zamiast klikania</h2>
+    <p><span class="term-amber">Terminal</span> (albo konsola, wiersz poleceń) to okno, w którym zamiast klikać ikony, wpisujesz tekstowe polecenia, a komputer odpowiada tekstem. Wygląda staroświecko, ale ma jedną kluczową przewagę nad klikaniem: polecenie da się zapisać w pliku i uruchomić ponownie, dokładnie tak samo, tysiąc razy, na tysiącu różnych komputerów. To właśnie dlatego niemal każde narzędzie pipeline'u opisane w tej książce — od publikacji z Rozdziału 7 po zgłoszenie zadania na farmę z Rozdziału 19 — pod spodem da się uruchomić z terminala, nawet jeśli artysta widzi tylko przycisk.</p>
+
+    <div style="background:#0d0f13;border:1px solid var(--border);border-radius:8px;padding:14px 20px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:13px;line-height:1.85;color:#8fe28f;">$ cd DEMO/shots/seq010/shot0100/lighting
+$ ls
+work/  publish/
+$ </pre>
+    </div>
+    <p>Powyżej: przejście do folderu shotu i wypisanie jego zawartości — dokładnie ta struktura katalogów, którą poznasz szczegółowo w Rozdziale 4. Terminal nie robi nic magicznego; robi dokładnie to, o co poprosisz, tylko w formie tekstu zamiast kliknięcia.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Pojęcie 2</div>
+    <h2>Repozytorium i commit — folder, który pamięta swoją historię</h2>
+    <p><span class="term-cyan">Repozytorium</span> to folder, którego zawartość jest śledzona krok po kroku przez system kontroli wersji (Git — Rozdziały 5 i 9, albo Perforce — Rozdział 6). Zamiast jednej, aktualnej wersji plików, repozytorium pamięta każdy zapisany w przeszłości stan, do którego zawsze można wrócić. <span class="term-violet">Commit</span> (w Perforce: submit) to moment zapisania takiego stanu — jak zdjęcie całego folderu w danej chwili, opatrzone krótkim opisem, co się zmieniło i dlaczego. „Sklonować repozytorium" znaczy po prostu: pobrać na swój dysk pełną kopię tego folderu razem z jego historią.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Pojęcie 3</div>
+    <h2>Zmienna środowiskowa — karteczka, którą czyta cały komputer</h2>
+    <p><span class="term-amber">Zmienna środowiskowa</span> to nazwana wartość, którą system operacyjny trzyma w pamięci i którą może odczytać dowolny uruchomiony program — jak karteczka przyklejona do monitora, widoczna dla każdego programu, który akurat na niego spojrzy. Rozdział 12 pokazuje zmienną o nazwie <code>OCIO</code>, która mówi każdemu narzędziu, gdzie leży config kolorów; Rozdział 17 pokazuje, jak menedżer pakietów ustawia dziesiątki takich zmiennych naraz, budując środowisko dla konkretnego showu. Artysta nigdy nie ustawia ich ręcznie — robi to za niego narzędzie, o którym przeczytasz w dalszej części książki — ale warto wiedzieć, że to właśnie tam, w tle, „mieszka" wiele decyzji, które z pozoru dzieją się same.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Pojęcie 4</div>
+    <h2>API — sposób, w jaki jeden program prosi drugi o coś</h2>
+    <p><span class="term-cyan">API</span> (Application Programming Interface) to zestaw poleceń, przez które jeden program pozwala się kontrolować innemu programowi albo skryptowi, zamiast tylko człowiekowi klikającemu myszką. Kiedy Rozdział 14 pokazuje, że Maya, Houdini i Nuke „wystawiają" swój model danych jako funkcje Pythona, to właśnie o API mowa — sposób, w jaki skrypt publikujący z Rozdziału 7 może zapytać program, co jest aktualnie otwarte, bez konieczności, żeby ktokolwiek klikał cokolwiek ręcznie.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Terminal</dt>
+      <dd>Okno do wpisywania tekstowych poleceń zamiast klikania ikon.</dd>
+      <dt>Repozytorium</dt>
+      <dd>Folder, którego historia zmian jest śledzona przez system kontroli wersji.</dd>
+      <dt>Commit / submit</dt>
+      <dd>Zapisanie bieżącego stanu repozytorium jako nowego punktu w jego historii.</dd>
+      <dt>Zmienna środowiskowa</dt>
+      <dd>Nazwana wartość dostępna dla każdego programu uruchomionego w danej sesji systemu.</dd>
+      <dt>API</dt>
+      <dd>Zestaw poleceń, przez które program pozwala się kontrolować innemu programowi lub skryptowi.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>To wszystkie pojęcia, które musisz znać z góry. Reszta — show, sequence, shot, publish, pipeline — buduje się już wewnątrz samej książki, rozdział po rozdziale. Możesz zaczynać od Rozdziału 1.</p>
   </div>
 
 <div class="site-nav">
