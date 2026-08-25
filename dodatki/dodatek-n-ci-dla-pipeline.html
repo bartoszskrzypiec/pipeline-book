@@ -12,16 +12,46 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · N</span><span>EXT OF · Rozdział 9</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · N</span><span>CI · testy przed merge</span><span>EXT OF · Rozdział 9</span>
   </div>
 
-  <div class="eyebrow">Dodatek N / Głębiej</div>
+  <div class="eyebrow">Dodatek N / Głębiej: Kod pipeline'u</div>
   <h1>Continuous Integration dla pipeline'u</h1>
   <p class="subtitle">Narzędzie używane przez cały show nie może zepsuć się w środku dnia — jak pipeline testuje sam siebie, zanim zmiana trafi do artystów.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>CI (Continuous Integration) automatycznie uruchamia zestaw testów przy każdej proponowanej zmianie, zanim pozwoli jej trafić na branch produkcyjny z Rozdziału 9 — dodatkowa, zautomatyzowana warstwa nad code review, nie jego zamiennik.</li>
+      <li>Testy pipeline'owe często wymagają uruchomienia prawdziwego DCC w trybie headless (bez interfejsu), co jest wolniejsze i trudniejsze do skonfigurowania niż typowy test jednostkowy w zwykłym oprogramowaniu.</li>
+      <li>CI to mechanizm, który fizycznie egzekwuje bramkę review z Rozdziału 9 — merge nie jest w ogóle możliwy, dopóki automatyczne testy nie przejdą.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 9 wyjaśnił, dlaczego kod pipeline'u przechodzi przez branch i code review, zanim trafi do artystów — stawka błędu jest wyższa niż w typowym małym zespole software'owym. Ten dodatek pokazuje mechanizm, który stoi obok recenzji człowieka: zautomatyzowane testy uruchamiane przy każdej zmianie, zanim jeszcze ktokolwiek zdąży ją przejrzeć ręcznie.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Co faktycznie się testuje</div>
+    <h2>Od czystej logiki po prawdziwą sesję DCC</h2>
+    <ul class="compact">
+      <li><strong>Testy jednostkowe</strong> — sprawdzają czystą logikę bez uruchamiania żadnego DCC, np. czy funkcja parsująca numer wersji poprawnie odróżnia <code>v001</code> od <code>v10</code>.</li>
+      <li><strong>Testy dymne (smoke tests)</strong> — uruchamiają prawdziwy, headless DCC na znanej scenie testowej i sprawdzają, czy narzędzie nie wysypuje się i produkuje strukturę wyniku zgodną z oczekiwaniami.</li>
+      <li><strong>Walidacja schematu</strong> — sprawdza, czy zmiana w kodzie hooka (Rozdział 18) nie odwołuje się do pola, które nie istnieje w aktualnym schemacie systemu śledzenia (Dodatek F).</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Headless DCC jako wyzwanie samo w sobie</div>
+    <h2>Trudniejsze niż zwykły test jednostkowy</h2>
+    <p>Typowy test w oprogramowaniu uruchamia się w ułamku sekundy, bez żadnych zewnętrznych zależności. Test smoke sprawdzający narzędzie pipeline'u często musi uruchomić prawdziwą Mayę czy Houdiniego w trybie <span class="term-amber">headless</span> (bez interfejsu graficznego) na maszynie CI — co oznacza dostępność licencji na tej maszynie, dłuższy czas startu samego DCC, i środowisko rozwiązane dokładnie tym samym menedżerem pakietów z Rozdziału 17, żeby test w ogóle odzwierciedlał to, czego doświadczy artysta. To właśnie ta specyfika sprawia, że CI w VFX bywa wolniejsze i trudniejsze do utrzymania niż w typowym projekcie webowym, mimo że sama idea jest identyczna.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Bramka, nie sugestia</div>
+    <h2>Merge zablokowany, dopóki testy nie przejdą</h2>
+    <p>Kluczowa własność CI, odróżniająca je od zwykłego „uruchom testy, jak będziesz miał czas": pull request z Rozdziału 9 fizycznie nie da się połączyć z branchem produkcyjnym, dopóki wszystkie zarejestrowane testy nie przejdą. To zamienia dyscyplinę code review z dobrej praktyki w wymóg egzekwowany przez samo narzędzie, nie tylko przez kulturę zespołu — i daje Pipeline TD (Rozdział 21) konkretną podstawę do tego, żeby z pewnością przypiąć nowy tag narzędzi (Rozdział 17) do żywego showu, zamiast polegać wyłącznie na tym, że ktoś „na oko" sprawdził zmianę.</p>
   </div>
 
 <div class="site-nav">
