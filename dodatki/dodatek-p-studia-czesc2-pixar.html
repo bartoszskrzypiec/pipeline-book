@@ -12,17 +12,44 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>WYKŁAD · Studia w praktyce</span><span>CZĘŚĆ · 2 z 5</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>WYKŁAD · Studia w praktyce</span><span>CZĘŚĆ · 2 z 5</span><span>NARZĘDZIA · Presto, RenderMan, USD</span>
   </div>
 
   <div class="eyebrow">Wykład: Studia w praktyce — część 2 z 5</div>
   <h1>Studia w praktyce, część 2: Pixar — pipeline jako produkt</h1>
   <p class="subtitle">Jedyne studio na tej liście, które swój wewnętrzny pipeline (USD) oddało całej branży za darmo — i dlaczego to się im opłacało.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Pixar jest jedynym studiem w tej serii, które produkuje wyłącznie własne filmy, nie usługując zewnętrznym klientom — dzięki temu może traktować pipeline jak długoterminowy, wewnętrzny produkt, nie jak koszt dopasowywany do budżetu pojedynczego zlecenia.</li>
+      <li>Presto (animacja i rigging) i RenderMan (render) to własne narzędzia rdzeniowe budowane od dekad — nie dodatki na gotowym DCC, tylko fundamenty, wokół których projektowana jest cała reszta pipeline'u.</li>
+      <li>USD (Rozdział 11), dziś fundament pipeline'u całej branży, to dokładnie ten sam wzorzec co OpenEXR z części 1 tej serii — wewnętrzne narzędzie oddane światu, bo problem, który rozwiązywało, okazał się uniwersalny.</li>
+    </ul>
   </div>
+
+  <div class="section">
+    <p>Część 1 tej serii pokazała ILM jako studio zmuszone budować infrastrukturę, bo rynku na nią jeszcze nie było. Pixar reprezentuje inny przypadek: studio, które mogłoby dziś kupić niemal każde narzędzie na rynku, a mimo to świadomie buduje i utrzymuje własne — bo jego sytuacja biznesowa czyni to racjonalnym wyborem, nie koniecznością.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Pipeline jako długoterminowa inwestycja</div>
+    <h2>Jedno studio, jedna linia produkcyjna, dekady horyzontu</h2>
+    <p>W odróżnieniu od studiów usługowych, które w danym roku pracują nad kilkunastoma filmami dla różnych, zewnętrznych klientów (część 4 tej serii), Pixar produkuje wyłącznie własne filmy animowane, według własnego harmonogramu. Ta różnica ma bezpośrednie konsekwencje dla tego, jak studio myśli o pipeline: inwestycja w narzędzie, które zwróci się dopiero za pięć lat, ma sens tylko wtedy, gdy wiadomo, że firma nadal będzie z niego korzystać za pięć lat. Stąd <span class="term-amber">Presto</span> — własny system animacji i riggingu, rozwijany od dekad — i <span class="term-cyan">RenderMan</span> — jeden z najdłużej rozwijanych rendererów produkcyjnych w branży, którego korzenie sięgają architektury REYES, a który ewoluował przez lata aż do w pełni ścieżkowego (path tracing) rdzenia. Oba nie są dodatkami doczepionymi do gotowego DCC — są fundamentem, wokół którego reszta pipeline'u jest projektowana od zera.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Ten sam wzorzec, inna dekada</div>
+    <h2>USD jako powtórka historii OpenEXR</h2>
+    <p>Rozdział 11 opisał już USD szczegółowo, więc tutaj wystarczy nazwać wzorzec wprost: to dokładnie ta sama historia co OpenEXR z części 1 tej serii, tylko wydarzająca się dekady później i w innym studiu. Pixar zbudował USD, żeby rozwiązać własny, bardzo konkretny problem — jak złożyć środowisko z tysięcy assetów bez kopiowania ich do jednego pliku — a w 2016 roku zdecydował się oddać to rozwiązanie całej branży jako otwarty standard, zamiast zatrzymać je jako przewagę konkurencyjną. Dziś USD stoi u podstaw pipeline'u studiów, które nigdy nie miały nic wspólnego z produkcją Pixara — dowód, że narzędzie zbudowane wystarczająco dobrze pod jeden, konkretny problem bywa uniwersalne dla całej branży, nie tylko dla autora.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Nie tylko USD</div>
+    <h2>Reszta układanki</h2>
+    <p>Farma renderowa Pixara, Tractor, pojawiła się już w Dodatku M jako jeden z trzech głównych systemów kolejkowania zadań — powstała z tej samej wewnętrznej potrzeby co Presto i RenderMan, zanim stała się dostępna szerzej poza studiem. To spójny obraz: praktycznie każdy kluczowy element pipeline'u Pixara, od animacji przez render po zarządzanie farmą, powstał wewnętrznie, na długo zanim ktokolwiek na zewnątrz mógł go kupić — i część z tych narzędzi, tak jak USD, w końcu trafiła do reszty branży.</p>
+  </div>
+
     <div class="series-nav">
       <a href="dodatek-o-studia-czesc1-ilm.html">Część 1: ILM</a><span class="current">Część 2: Pixar</span><a href="dodatek-q-studia-czesc3-weta.html">Część 3: Weta</a><a href="dodatek-r-studia-czesc4-framestore-mpc-dneg.html">Część 4: Framestore/MPC/DNEG</a><a href="dodatek-s-studia-czesc5-animal-logic-usd.html">Część 5: Animal Logic</a>
     </div>
