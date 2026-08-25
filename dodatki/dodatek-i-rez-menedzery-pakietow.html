@@ -12,16 +12,54 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · I</span><span>EXT OF · Rozdział 17</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · I</span><span>SOLVER · constraint satisfaction</span><span>EXT OF · Rozdział 17</span>
   </div>
 
-  <div class="eyebrow">Dodatek I / Głębiej</div>
+  <div class="eyebrow">Dodatek I / Głębiej: Środowisko</div>
   <h1>Rez i menedżery pakietów</h1>
   <p class="subtitle">Trzysta stacji roboczych, ten sam show, dokładnie ta sama wersja Houdiniego i tego samego pluginu na każdej z nich — bez tego żaden render nie jest powtarzalny.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Każdy pakiet Rez deklaruje nazwę, wersję i listę zależności z akceptowalnym <em>zakresem</em> wersji, nie jedną sztywną wersją — to daje solverowi pole manewru przy szukaniu zgodnego zestawu.</li>
+      <li>Rozwiązywanie żądania to zadanie spełniania ograniczeń: znaleźć jedną wersję każdego pakietu pasującą jednocześnie do wymagań wszystkich pozostałych — a kiedy się nie da, Rez pokazuje dokładnie, które dwa wymagania się wykluczają.</li>
+      <li>Rozwiązany kontekst to zestaw zmiennych środowiskowych zbudowany raz i użyty do uruchomienia procesu dokładnie w tym środowisku — nic bardziej magicznego.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 17 pokazał menedżer pakietów jako czarną skrzynkę, która „rozwiązuje żądaną kombinację wersji". Ten dodatek otwiera tę skrzynkę — pokazuje, jak zapisuje się pojedynczy pakiet i co dokładnie dzieje się w momencie, w którym Rez próbuje pogodzić wymagania kilku pakietów naraz.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Deklaracja pakietu</div>
+    <h2>Wersja jako zakres, nie jedna liczba</h2>
+    <p>Każdy pakiet w Rez opisany jest plikiem deklarującym jego nazwę, wersję i listę zależności — ale te zależności rzadko wskazują jedną, dokładną wersję. Zamiast tego określają <span class="term-amber">zakres</span>: „maya w wersji 2024 lub nowszej", „python w wersji 3.9 albo 3.10". Ta elastyczność ma znaczenie praktyczne — pakiet napisany raz nie musi być aktualizowany za każdym razem, gdy powstanie nowa, kompatybilna wersja jego zależności, dopóki mieści się w zadeklarowanym zakresie.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Solver i konflikty</div>
+    <h2>Znaleźć jeden zestaw, który pasuje wszystkim naraz</h2>
+    <p>Kiedy artysta żąda kontekstu z kilkoma pakietami, Rez musi znaleźć dokładnie jedną wersję każdego z nich (i każdej ich zależności, transytywnie) tak, żeby żaden zakres nie został złamany. To zadanie <span class="term-cyan">spełniania ograniczeń</span> (constraint satisfaction) — dokładnie ta sama klasa problemu, którą rozwiązują solvery w innych dziedzinach inżynierii. Kiedy dwa pakiety mają sprzeczne wymagania, których nie da się jednocześnie spełnić, Rez nie zgaduje ani nie wybiera arbitralnie — zgłasza dokładnie, które dwa wymagania się wykluczają:</p>
+
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--text);">REQUEST: maya-2024 arnold-7 pipeline-tools
+
+maya-2024       requires  python-3.9|3.10
+arnold-7        requires  maya-2023+
+pipeline-tools  requires  python-3.11+
+
+<span style="color:#e0655f;">&gt;&gt;&gt; KONFLIKT: python-3.9|3.10 (z maya-2024)
+    vs python-3.11+ (z pipeline-tools)</span></pre>
+    </div>
+    <p>Taki komunikat, choć techniczny, jest dokładnie tym, czego potrzebuje Pipeline TD (Rozdział 21), żeby zdiagnozować problem w minutę zamiast godzin — wskazuje precyzyjnie, które dwa pakiety trzeba zaktualizować albo poluzować, żeby żądanie w ogóle dało się rozwiązać.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Od rozwiązania do środowiska</div>
+    <h2>Kontekst to tylko zmienne, ustawione raz</h2>
+    <p>Kiedy solver znajdzie zgodny zestaw wersji, Rez buduje z niego <span class="term-violet">kontekst</span> (Rozdział 17) — ustawia zmienne środowiskowe takie jak <code>PATH</code> (gdzie szukać uruchamialnych programów) i <code>PYTHONPATH</code> (gdzie szukać modułów Pythona), tak żeby wskazywały dokładnie na rozwiązane wersje, i uruchamia w tym środowisku nowy proces — sesję Mayi, powłokę terminala, zadanie farmy. Ponieważ pełne rozwiązywanie dużego zestawu pakietów bywa kosztowne obliczeniowo, popularne, powtarzalne kombinacje (jak „standardowe środowisko showu X") są zwykle cache'owane, więc kolejne żądanie tego samego zestawu wraca niemal natychmiast, zamiast przeliczać solver od zera.</p>
   </div>
 
 <div class="site-nav">
