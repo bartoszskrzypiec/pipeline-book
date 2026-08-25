@@ -23,7 +23,8 @@
     <div class="panel-label">TL;DR</div>
     <ul>
       <li>USD wygrało nie dlatego, że Pixar tak kazał, tylko dlatego, że reszta branży dobrowolnie dołączyła do wspólnego standardu — Animal Logic, studio nigdy formalnie niezwiązane z Pixarem, było jednym z pierwszych, które publicznie zaadaptowało USD na dużą skalę we własnej produkcji.</li>
-      <li>Dziś USD rozwija dalej Alliance for OpenUSD (AOUSD) — konsorcjum obejmujące firmy tak różne jak Apple, Adobe, NVIDIA i Autodesk — dowód, że standard przestał być „narzędziem Pixara" i stał się wspólną własnością branży.</li>
+      <li>Adopcja standardu nie polega na „włączeniu USD" — polega na dopisaniu u siebie tego, czego standard celowo nie definiuje: resolvera ścieżek, konwencji warstw, publishu i mostów do własnych DCC.</li>
+      <li>Dziś USD rozwija dalej Alliance for OpenUSD (AOUSD) — konsorcjum założone w sierpniu 2023 przez Pixara, Apple, Adobe, Autodesk i Nvidię, działające jako projekt Joint Development Foundation przy Linux Foundation.</li>
       <li>To domyka pętlę otwartą w części 1 i 2 tej serii: narzędzie zbudowane pod wewnętrzny problem jednego studia osiąga pełnię swojego potencjału dopiero wtedy, gdy reszta branży dobrowolnie zdecyduje się go używać.</li>
     </ul>
   </div>
@@ -35,19 +36,91 @@
   <div class="section">
     <div class="section-eyebrow">Etap: Wczesny, niezależny adopter</div>
     <h2>Animal Logic — dowód, że to działa poza Pixarem</h2>
-    <p>Wypuszczenie narzędzia jako otwartego źródła nie gwarantuje jeszcze, że ktokolwiek go użyje. Animal Logic, australijskie studio odpowiedzialne za produkcje takie jak seria filmów o LEGO, było jednym z pierwszych dużych studiów spoza Pixara, które publicznie i na dużą skalę zbudowało swój pipeline wokół USD — nie dlatego, że musiało, tylko dlatego, że format faktycznie rozwiązywał ich własny problem składania złożonych scen z wielu assetów (Rozdział 11) lepiej niż cokolwiek innego dostępnego na rynku. To właśnie ten rodzaj niezależnej, dobrowolnej adopcji odróżnia prawdziwy standard branżowy od narzędzia, które pozostaje ciekawostką używaną wyłącznie przez twórcę.</p>
+    <p>Wypuszczenie narzędzia jako otwartego źródła nie gwarantuje jeszcze, że ktokolwiek go użyje. Animal Logic, australijskie studio odpowiedzialne za produkcje takie jak seria filmów o LEGO, było jednym z pierwszych dużych studiów spoza Pixara, które publicznie i na dużą skalę zbudowało swój pipeline wokół USD — nie dlatego, że musiało, tylko dlatego, że format faktycznie rozwiązywał ich własny problem składania złożonych scen z wielu assetów (Rozdział 11) lepiej niż cokolwiek innego dostępnego na rynku.</p>
+    <p>Ta adopcja miała bardzo konkretny, sprawdzalny kształt. Żeby pracować na USD w Mayi, studio musiało samo zbudować most między jednym a drugim — i w 2017 roku udostępniło go jako otwarte źródło pod nazwą <span class="term-cyan">AL_USDMaya</span>. Przez kilka lat w branży istniały równolegle dwie takie wtyczki: ta od Animal Logic i ta od Pixara. Skończyło się to konsolidacją: kod obu trafił do wspólnego projektu <span class="term-cyan">maya-usd</span>, rozwijanego przez Autodesk razem z Pixarem, Animal Logic i innymi studiami. Osobny projekt AL_USDMaya przestał być wspierany z końcem sierpnia 2024 roku, a jego kod żyje dalej we wspólnej wtyczce.</p>
+    <p>Warto zatrzymać się nad tym, co się tu właściwie stało, bo to ten sam wzorzec co w częściach 1 i 2, tylko o poziom niżej: studio zbudowało narzędzie dla siebie, oddało je branży, branża je przejęła — a po drodze dwa konkurencyjne rozwiązania tego samego problemu połączyły się w jedno, którego nie utrzymuje już samodzielnie żadne pojedyncze studio.</p>
+  </div>
+
+  <div class="diagram-frame">
+    <div class="diagram-hud"><span>Standard.timeline</span><span>Od jednego studia do konsorcjum</span></div>
+    <svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Os czasu: od otwarcia USD w 2016 do specyfikacji rdzenia AOUSD">
+      <line x1="40" y1="120" x2="666" y2="120" stroke="#2a2f38" stroke-width="2"/>
+
+      <g font-family="IBM Plex Mono" font-size="11" fill="#e8a33d">
+        <circle cx="70" cy="120" r="6" fill="#14161a" stroke="#e8a33d" stroke-width="2"/>
+        <text x="70" y="100" text-anchor="middle">2016</text>
+        <circle cx="210" cy="120" r="6" fill="#14161a" stroke="#e8a33d" stroke-width="2"/>
+        <text x="210" y="100" text-anchor="middle">2017</text>
+        <circle cx="360" cy="120" r="6" fill="#14161a" stroke="#4fc3c0" stroke-width="2"/>
+        <text x="360" y="100" text-anchor="middle" fill="#4fc3c0">konsolidacja</text>
+        <circle cx="500" cy="120" r="6" fill="#14161a" stroke="#e8a33d" stroke-width="2"/>
+        <text x="500" y="100" text-anchor="middle">2023</text>
+        <circle cx="630" cy="120" r="6" fill="#14161a" stroke="#9c82d8" stroke-width="2"/>
+        <text x="630" y="100" text-anchor="middle" fill="#9c82d8">2024→</text>
+      </g>
+
+      <g font-family="IBM Plex Sans" font-size="11.5" fill="#ecebe4">
+        <text x="70" y="150" text-anchor="middle">Pixar otwiera</text>
+        <text x="70" y="166" text-anchor="middle">USD</text>
+
+        <text x="210" y="150" text-anchor="middle">Animal Logic</text>
+        <text x="210" y="166" text-anchor="middle">otwiera AL_USDMaya</text>
+
+        <text x="360" y="150" text-anchor="middle">wspólna wtyczka</text>
+        <text x="360" y="166" text-anchor="middle">maya-usd</text>
+
+        <text x="500" y="150" text-anchor="middle">powstaje AOUSD</text>
+        <text x="500" y="166" text-anchor="middle">(5 firm założycielskich)</text>
+
+        <text x="630" y="150" text-anchor="middle">pisana</text>
+        <text x="630" y="166" text-anchor="middle">specyfikacja rdzenia</text>
+      </g>
+
+      <text x="40" y="212" font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">JEDNO STUDIO</text>
+      <text x="666" y="212" text-anchor="end" font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">WŁASNOŚĆ BRANŻY</text>
+      <line x1="40" y1="222" x2="666" y2="222" stroke="#2a2f38" stroke-dasharray="4 4"/>
+    </svg>
+    <div class="diagram-caption">Dekada, w której kod jednego studia stał się infrastrukturą całej branży — a potem doczekał się pisanej specyfikacji, niezależnej od implementacji.</div>
   </div>
 
   <div class="section">
     <div class="section-eyebrow">Etap: Od narzędzia jednego studia do własności konsorcjum</div>
     <h2>Alliance for OpenUSD</h2>
-    <p>Dowodem, jak daleko zaszła ta adopcja, jest Alliance for OpenUSD (AOUSD) — konsorcjum założone m.in. przez Pixara, Apple, Adobe, Nvidię i Autodesk, dziś wspólnie kierujące dalszym rozwojem standardu. Firmy w tym gronie konkurują ze sobą na wielu innych polach, a mimo to zgodziły się rozwijać USD wspólnie, jako współdzieloną infrastrukturę — dokładnie dlatego, że żadna z nich osobno nie miała interesu w budowaniu własnego, konkurencyjnego formatu od zera, skoro dobry już istniał. Zarządzanie standardem przestało być decyzją jednej firmy i stało się procesem wielostronnym, co samo w sobie jest miarą sukcesu narzędzia, które zaczęło jako wewnętrzny projekt jednego studia animowanego.</p>
+    <p>Dowodem, jak daleko zaszła ta adopcja, jest Alliance for OpenUSD (AOUSD) — konsorcjum powołane w sierpniu 2023 roku przez Pixara, Apple, Adobe, Autodesk i Nvidię, dziś wspólnie kierujące dalszym rozwojem standardu. Formalnie działa jako projekt Joint Development Foundation, organizacji stowarzyszonej z Linux Foundation — czyli w tej samej konstrukcji prawnej, w jakiej utrzymywanych jest wiele innych wspólnych standardów technicznych. Firmy w tym gronie konkurują ze sobą na wielu innych polach, a mimo to zgodziły się rozwijać USD wspólnie, jako współdzieloną infrastrukturę — dokładnie dlatego, że żadna z nich osobno nie miała interesu w budowaniu własnego, konkurencyjnego formatu od zera, skoro dobry już istniał.</p>
+    <p>Najważniejsza praca konsorcjum jest przy tym najmniej widowiskowa: to spisanie <span class="term-violet">specyfikacji rdzenia</span> — dokumentu opisującego, czym USD jest niezależnie od kodu, który go implementuje. Dopóki standardem jest „to, co robi biblioteka Pixara", nikt nie może napisać własnej, zgodnej implementacji ani formalnie sprawdzić, czy jego plik jest poprawny. Pisana specyfikacja zmienia USD z bardzo dobrej biblioteki w standard w tym samym sensie, w jakim standardem jest format PDF.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Adopcja od kuchni</div>
+    <h2>Czego standard celowo nie definiuje</h2>
+    <p>Najczęstsze nieporozumienie przy wchodzeniu w USD brzmi: „przechodzimy na USD" — tak jakby to była instalacja. W praktyce standard rozwiązuje jedną warstwę problemu (jak opisać i złożyć scenę) i celowo zostawia otwarte wszystko, co jest specyficzne dla konkretnego studia. To właśnie ta reszta jest pracą działu pipeline i to ona zajmuje miesiące:</p>
+    <ul class="compact">
+      <li><strong>Asset resolver</strong> — kod tłumaczący zapis w rodzaju <code>asset://hero_char?v=34</code> na konkretny plik w tym konkretnym studiu, biurze i na farmie (Rozdział 11 i 17). USD definiuje tylko punkt zaczepienia, nie samą politykę.</li>
+      <li><strong>Konwencja warstw</strong> — kto zapisuje co i w jakiej kolejności siły. Standard dopuszcza dowolną strukturę; to studio decyduje, że lighting stoi nad fx, a fx nad animacją (Rozdział 4 i Dodatek B).</li>
+      <li><strong>Publish do USD</strong> — narzędzie, które po zatwierdzeniu wersji dopisuje właściwą ścieżkę do właściwej warstwy, zamiast zostawiać to ręcznej edycji pliku (Rozdział 7).</li>
+      <li><strong>Własne schematy</strong> — USD pozwala rozszerzyć swój model danych o typy specyficzne dla studia. To potężny mechanizm i jednocześnie dług: każdy własny schemat trzeba utrzymywać przy kolejnych wersjach USD.</li>
+    </ul>
+    <p>Historia AL_USDMaya jest tu pouczająca podwójnie. Studio zbudowało dokładnie taki brakujący element — most do własnego DCC — a potem, kiedy branża zeszła się na wspólnym rozwiązaniu, przeniosło swój wysiłek tam, zamiast utrzymywać drugą, równoległą wtyczkę w nieskończoność. To ta sama decyzja co w Rozdziale 9 przy zamrażaniu wersji narzędzi: utrzymywanie własnej gałęzi czegoś, co istnieje już wspólnie, kosztuje więcej niż dołożenie się do wspólnego.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Co z tego wynika dla Ciebie</div>
+    <h2>Standard branżowy nadal ma numer wersji</h2>
+    <p>Dla artysty technicznego pracującego dziś w studiu na USD z tej historii wynika kilka bardzo praktycznych rzeczy. Po pierwsze: „scena jest w USD" nie znaczy, że otworzy się wszędzie. Znaczenie ma wersja biblioteki USD, wersja wtyczki w Twoim DCC i to, czy dany plik używa schematów, których Twoje środowisko nie zna — dlatego menedżer pakietów z Rozdziału 17 jest przy USD nie luksusem, tylko warunkiem powtarzalności.</p>
+    <p>Po drugie: pliki USD są długowieczne. Shot złożony dziś będzie otwierany za rok, przy innej wersji bibliotek — a to znaczy, że własne schematy i egzotyczne konstrukcje kompozycji są zobowiązaniem na lata, nie sprytnym trikiem na jeden show. Po trzecie wreszcie: skoro standardem kieruje konsorcjum, w którym siedzą dostawcy Twoich narzędzi, to zgłoszony przez studio problem realnie ma dokąd trafić. Dokładnie tak działa różnica między formatem należącym do jednej firmy a wspólną infrastrukturą branży — i to jest morał całej tej serii.</p>
   </div>
 
   <div class="section">
     <div class="section-eyebrow">Etap: Domykająca pętla</div>
     <h2>Ten sam wzorzec, trzy razy w tej serii</h2>
     <p>Zestawione razem, te pięć części tej serii pokazuje jeden, powtarzający się kształt: studio napotyka problem, na który rynek nie ma jeszcze gotowej odpowiedzi (ILM i format obrazu, Pixar i kompozycja sceny, Weta i skala symulacji), buduje własne rozwiązanie z czystej konieczności, a czasem — nie zawsze — to rozwiązanie okazuje się na tyle uniwersalne, że reszta branży dobrowolnie je przejmuje. Studia usługowe z części 4 nie budują tych fundamentów od zera — stoją na tym, co OpenEXR, USD i im podobne narzędzia już rozwiązały, i mogą skupić swój własny wysiłek na problemach specyficznych dla swojej skali: wielu show'ów, wielu klientów, wielu kontynentów naraz.</p>
+  </div>
+
+  <div class="deeper">
+    <div class="deeper-label">Idź głębiej</div>
+    <a href="../rozdzialy/rozdzial-11-usd.html">Rozdział 11 — USD od strony mechanizmu: warstwy, stage i asset resolver</a>
+    <a href="dodatek-b-usd-w-glebi.html">Dodatek B — composition arcs i kolejność LIVRPS, czyli czym dokładnie jest „konwencja warstw"</a>
+    <a href="dodatek-p-studia-czesc2-pixar.html">Dodatek P — druga strona tej historii: dlaczego Pixar w ogóle oddał USD branży</a>
   </div>
 
     <div class="series-nav">
