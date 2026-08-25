@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/interactive.js" defer></script>
 </head>
 <body>
 <div class="page">
@@ -24,6 +25,7 @@
     <ul>
       <li>USD nie kopiuje assetów do jednego pliku sceny — składa gotowy widok (stage) w locie z osobnych warstw, z których każda dokłada tylko swoją część.</li>
       <li>Referencje pozwalają użyć tego samego assetu w tysiącu miejsc bez duplikowania danych — generalizacja zasady „jeden asset, wiele shotów" z Rozdziału 2, tym razem dla całych scen.</li>
+      <li>Kiedy dwie warstwy mówią co innego o tym samym obiekcie, wygrywa silniejsza — i to jest źródło większości sytuacji, w których „zmiana się zapisała, a scena jej nie widzi".</li>
       <li>To, co Pixar zbudował dla własnej produkcji i oddał branży w 2016 roku jako otwarty standard, jest dziś wspólnym językiem niemal każdego dużego studia — poznasz to bliżej w Dodatku P.</li>
     </ul>
   </div>
@@ -35,7 +37,7 @@
   <div class="section">
     <div class="section-eyebrow">Etap: Kompozycja, nie kopiowanie</div>
     <h2>Scena składana w locie, nie scalana na stałe</h2>
-    <p>Centralna idea USD nazywa się <span class="term-amber">kompozycją</span>. Zamiast trwale scalać dane wielu assetów w jeden plik, USD trzyma je osobno i składa gotowy widok — nazywany <span class="term-cyan">stage</span> — dopiero w momencie otwarcia albo renderu, na podstawie zestawu reguł mówiących, co się z czego bierze. Każdy plik USD, który dokłada swoją część do tej układanki, nazywa się <span class="term-violet">warstwą</span> (layer). Nic nie jest kopiowane — stage to zawsze żywe złożenie warstw, nie ich trwały zapis.</p>
+    <p>Centralna idea USD nazywa się <span class="term-cyan">kompozycją</span>. Zamiast trwale scalać dane wielu assetów w jeden plik, USD trzyma je osobno i składa gotowy widok — nazywany <span class="term-cyan">stage</span> — dopiero w momencie otwarcia albo renderu, na podstawie zestawu reguł mówiących, co się z czego bierze. Każdy plik USD, który dokłada swoją część do tej układanki, nazywa się <span class="term-amber">warstwą</span> (layer). Nic nie jest kopiowane — stage to zawsze żywe złożenie warstw, nie ich trwały zapis.</p>
   </div>
 
   <div class="section">
@@ -44,42 +46,193 @@
     <ul class="compact">
       <li><strong>Referencja</strong> — wskazanie na inny plik USD (albo Alembic, Rozdział 10) jako źródło danych, zamiast kopiowania ich do bieżącej sceny. Dziesięć tysięcy drzew w lesie to w praktyce dziesięć tysięcy referencji do garstki opublikowanych assetów drzew, nie dziesięć tysięcy kopii geometrii.</li>
       <li><strong>Warstwy (sublayers)</strong> — kilka plików USD nakłada się na siebie, każdy dokładając własną „opinię" o tej samej scenie: warstwa layoutu ustawia pozycje, warstwa fx dokłada symulację, warstwa lightingu dokłada światła. Każdy dział edytuje wyłącznie swoją warstwę — nikt nie nadpisuje pracy innego działu, bo fizycznie znajduje się ona w innym pliku.</li>
-      <li><strong>Warianty (variants)</strong> — przełącznik pozwalający wybrać jedną z kilku wersji tego samego assetu (inny strój postaci, inny poziom szczegółowości geometrii) bez duplikowania całego assetu dla każdej opcji.</li>
+      <li><strong><span class="term-violet">Warianty</span> (variants)</strong> — przełącznik pozwalający wybrać jedną z kilku wersji tego samego assetu (inny strój postaci, inny poziom szczegółowości geometrii) bez duplikowania całego assetu dla każdej opcji.</li>
     </ul>
     <p>To celowo uproszczony opis — pełne, precyzyjne reguły pierwszeństwa między warstwami (tzw. composition arcs) mają swój dokładny porządek i wyjątki, które rozkładamy krok po kroku w Dodatku B.</p>
+    <a class="inline-deeper" href="../dodatki/dodatek-b-usd-w-glebi.html">↓ Dodatek B: sześć arcs i kolejność LIVRPS</a>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Plik od środka</div>
+    <h2>Jak naprawdę wygląda warstwa USD</h2>
+    <p>USD ma dwa równoważne zapisy tych samych danych: binarny <code>.usdc</code>, którego nie da się czytać w edytorze tekstu, i tekstowy <code>.usda</code>, który da się otworzyć w czymkolwiek. Poniżej ten sam shot, który przewija się przez całą tę książkę — <code>DEMO / seq010 / shot0100</code> — zapisany jako plik tekstowy. To jest cała treść warstwy głównej shotu: kilkanaście linii, które nie zawierają ani jednego wierzchołka geometrii.</p>
+
+    <div class="listing">
+      <div class="listing-label"><span>shot0100.usda — warstwa główna shotu</span><span>najedź na podkreślone słowa</span></div>
+<pre><span class="c">#usda 1.0</span>
+(
+    <span class="vec" data-tip="Lista warstw wciąganych pod tę warstwę. Kolejność to kolejność siły: pierwsza pozycja jest najsilniejsza.">subLayers</span> = [
+        <span class="s">@./lighting/DEMO_seq010_shot0100_lighting_v004.usd@</span>,
+        <span class="s">@./fx/DEMO_seq010_shot0100_fx_v011.usd@</span>,
+        <span class="s">@./anim/DEMO_seq010_shot0100_anim_v007.usd@</span>,
+        <span class="s">@./layout/DEMO_seq010_shot0100_layout_v002.usd@</span>
+    ]
+)</pre>
+    </div>
+
+    <p>Cztery pozycje w <code>subLayers</code> to cztery działy z diagramu poniżej. Ważny i łatwy do przeoczenia szczegół: <strong>kolejność na tej liście to kolejność siły</strong> — pierwsza warstwa jest najsilniejsza, ostatnia najsłabsza. Dlatego lighting, który w pipeline dokłada swoje poprawki na końcu, stoi na górze listy, a layout, który ustala stan wyjściowy, na dole. Sam plik shotu nie zawiera żadnej geometrii — tylko wskazania, z czego złożyć scenę.</p>
+
+    <p>Zajrzyjmy jeszcze o poziom niżej, do warstwy layoutu — to ona faktycznie wstawia postać do shotu:</p>
+
+    <div class="listing">
+      <div class="listing-label"><span>DEMO_seq010_shot0100_layout_v002.usda — fragment</span><span>warstwa layoutu</span></div>
+<pre><span class="k">def</span> Xform <span class="s">"World"</span>
+{
+    <span class="vec" data-tip="def = define: ten prim ma tu powstać. Jeśli nie istnieje w żadnej innej warstwie, ta go tworzy.">def</span> Xform <span class="s">"hero_char"</span> (
+        <span class="vec" data-tip="prepend = dołóż na początek listy referencji, czyli jako silniejszą od tych, które już tam są.">prepend</span> references = <span class="s">@/show/DEMO/assets/character/hero_char/model/publish/DEMO_hero_char_model_v034.usd@</span>
+    )
+    {
+        double3 xformOp:translate = (12, 0, -4)
+        uniform token[] xformOpOrder = [<span class="s">"xformOp:translate"</span>]
+    }
+}</pre>
+    </div>
+
+    <p>Trzy pojęcia z tego listingu warto nazwać wprost, bo wracają w każdym pliku USD, jaki kiedykolwiek otworzysz:</p>
+    <ul class="compact">
+      <li><strong><span class="term-cyan">Prim</span></strong> — pojedynczy obiekt w hierarchii sceny, odpowiednik węzła w outlinerze. Jego adres, <code>/World/hero_char</code>, nazywa się <em>prim path</em> i jest w USD tym, czym ścieżka pliku na dysku: jednoznacznym wskazaniem, o co dokładnie chodzi.</li>
+      <li><strong><code>def</code></strong> (od <em>define</em>) — deklaracja, że prim ma istnieć. Warstwa, która używa <code>def</code>, tworzy obiekt.</li>
+      <li><strong>Ścieżka w małpach</strong> — <code>@…@</code> to zapis <em>asset path</em>, czyli odwołania do innego pliku. W studiu ta ścieżka niemal nigdy nie jest zwykłą ścieżką dyskową: przechodzi przez <span class="term-cyan">asset resolver</span>, komponent pipeline'u tłumaczący zapis w rodzaju <code>asset://hero_char?v=34</code> na konkretny plik. Dzięki temu ten sam plik shotu działa w studiu, na farmie i w innym biurze, mimo że dysk jest tam podmontowany gdzie indziej.</li>
+    </ul>
+
+    <p>Warstwa lightingu nie tworzy już niczego nowego — ona tylko dopowiada swoje zdanie o obiekcie, który powstał gdzie indziej. Służy do tego <code>over</code>:</p>
+
+    <div class="listing">
+      <div class="listing-label"><span>DEMO_seq010_shot0100_lighting_v004.usda — fragment</span><span>warstwa lightingu</span></div>
+<pre><span class="vec" data-tip="over = nadpisanie. Prim musi już istnieć w innej warstwie — over sam z siebie niczego nie tworzy.">over</span> <span class="s">"World"</span>
+{
+    <span class="k">over</span> <span class="s">"hero_char"</span>
+    {
+        token visibility = <span class="s">"invisible"</span>
+    }
+}</pre>
+    </div>
+
+    <p>Tu leży cała istota nieniszczącej edycji w USD: lighting ukrył postać w swoim shocie, nie dotykając ani warstwy layoutu, ani opublikowanego assetu. Gdyby jutro modeling opublikował <code>v035</code>, ten <code>over</code> nadal by działał — bo odnosi się do adresu <code>/World/hero_char</code>, a nie do konkretnej wersji pliku.</p>
   </div>
 
   <div class="diagram-frame">
     <div class="diagram-hud"><span>Stage.compose</span><span>Cztery warstwy, jeden shot</span></div>
-    <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 700 290" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cztery warstwy USD składające się na jeden stage shotu 0100">
       <defs>
         <marker id="arrUsd" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
           <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
         </marker>
       </defs>
-      <g font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
-        <rect x="40" y="20" width="280" height="40" rx="7" fill="#20242c" stroke="#6e93be" stroke-opacity="0.7"/>
-        <text x="180" y="45" text-anchor="middle">layout.usd — pozycje assetów</text>
 
-        <rect x="60" y="66" width="280" height="40" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.7"/>
-        <text x="200" y="91" text-anchor="middle">anim.usd — cache animacji</text>
+      <text x="20" y="26" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">SILNIEJSZA OPINIA</text>
+      <line x1="26" y1="36" x2="26" y2="230" stroke="#2a2f38" stroke-width="1"/>
+      <text x="20" y="252" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">SŁABSZA OPINIA</text>
 
-        <rect x="80" y="112" width="280" height="40" rx="7" fill="#20242c" stroke="#9c82d8" stroke-opacity="0.7"/>
-        <text x="220" y="137" text-anchor="middle">fx.usd — symulacje</text>
-
-        <rect x="100" y="158" width="280" height="40" rx="7" fill="#20242c" stroke="#e8a33d" stroke-opacity="0.9"/>
-        <text x="240" y="183" text-anchor="middle">lighting.usd — światła</text>
+      <g class="ray-group" data-layer="lgt" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="46" y="34" width="290" height="40" rx="7" fill="#20242c" stroke="#e8a33d" stroke-opacity="0.9"/>
+        <text x="191" y="59" text-anchor="middle">lighting.usd — światła, over visibility</text>
+      </g>
+      <g class="ray-group" data-layer="fx" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="46" y="82" width="290" height="40" rx="7" fill="#20242c" stroke="#9c82d8" stroke-opacity="0.7"/>
+        <text x="191" y="107" text-anchor="middle">fx.usd — symulacje</text>
+      </g>
+      <g class="ray-group" data-layer="anim" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="46" y="130" width="290" height="40" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.7"/>
+        <text x="191" y="155" text-anchor="middle">anim.usd — cache animacji</text>
+      </g>
+      <g class="ray-group" data-layer="lay" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="46" y="178" width="290" height="40" rx="7" fill="#20242c" stroke="#6e93be" stroke-opacity="0.7"/>
+        <text x="191" y="203" text-anchor="middle">layout.usd — pozycje assetów</text>
       </g>
 
-      <line x1="380" y1="178" x2="470" y2="178" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrUsd)"/>
+      <line x1="350" y1="126" x2="418" y2="126" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrUsd)"/>
 
-      <rect x="472" y="120" width="190" height="116" rx="8" fill="#20242c" stroke="#ecebe4"/>
-      <text x="567" y="150" text-anchor="middle" font-family="IBM Plex Sans" font-size="13" font-weight="600" fill="#ecebe4">Stage</text>
-      <text x="567" y="170" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">shot0100.usd</text>
-      <text x="567" y="192" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">złożone w locie,</text>
-      <text x="567" y="208" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">bez kopiowania danych</text>
+      <rect x="422" y="34" width="252" height="220" rx="8" fill="#20242c" stroke="#ecebe4"/>
+      <text x="548" y="60" text-anchor="middle" font-family="IBM Plex Sans" font-size="13" font-weight="600" fill="#ecebe4">Stage</text>
+      <text x="548" y="78" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">shot0100.usd</text>
+      <g font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">
+        <text class="ray-group" data-layer="lgt" x="440" y="110">+ światła, widoczność postaci</text>
+        <text class="ray-group" data-layer="fx" x="440" y="134">+ symulacja kurzu</text>
+        <text class="ray-group" data-layer="anim" x="440" y="158">+ ruch postaci w czasie</text>
+        <text class="ray-group" data-layer="lay" x="440" y="182">+ pozycje i referencje assetów</text>
+      </g>
+      <text x="548" y="216" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">złożone w locie,</text>
+      <text x="548" y="232" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">bez kopiowania danych</text>
     </svg>
-    <div class="diagram-caption">Każdy dział edytuje własną warstwę osobno — stage to ich żywe, nietrwałe złożenie.</div>
+    <div class="legend">
+      <button type="button" class="chip" data-layer="lgt" aria-pressed="true"><span class="dot" style="background:#e8a33d"></span>lighting</button>
+      <button type="button" class="chip" data-layer="fx" aria-pressed="true"><span class="dot" style="background:#9c82d8"></span>fx</button>
+      <button type="button" class="chip" data-layer="anim" aria-pressed="true"><span class="dot" style="background:#4fc3c0"></span>anim</button>
+      <button type="button" class="chip" data-layer="lay" aria-pressed="true"><span class="dot" style="background:#6e93be"></span>layout</button>
+    </div>
+    <div class="diagram-caption">Wyłącz dowolną warstwę, żeby zobaczyć, co dokładnie wnosi ona do stage'u. W USD robi to jedna linijka w pliku shotu — warstwa nie znika z dysku, przestaje tylko brać udział w kompozycji.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Jeden shot, krok po kroku</div>
+    <h2>Co się dzieje między publishem a renderem</h2>
+    <p>Prześledźmy shot 0100 od momentu, w którym animacja kończy pracę, do chwili, w której lighting wysyła klatkę na farmę. Żaden z tych kroków nie kopiuje geometrii.</p>
+
+    <div class="worked">
+      <div class="wlabel">Shot 0100 — droga przez kompozycję</div>
+      <div class="step"><span class="k">1. publish anim</span> → <span class="v">DEMO_seq010_shot0100_anim_v007.usd</span> ląduje w <span class="v">shot0100/anim/publish/</span></div>
+      <div class="step"><span class="k">2. wpis w shocie</span> → narzędzie publishu dopisuje tę ścieżkę do <span class="v">subLayers</span> w shot0100.usda, na trzeciej pozycji</div>
+      <div class="step"><span class="k">3. layout</span> → jego warstwa referuje asset <span class="v">DEMO_hero_char_model_v034.usd</span> i ustawia pozycję (12, 0, −4)</div>
+      <div class="step"><span class="k">4. lighting</span> → dokłada światła i jeden <span class="v">over</span> na <span class="v">/World/hero_char</span></div>
+      <div class="step"><span class="k">5. render</span> → renderer otwiera <span class="v">shot0100.usd</span> i dostaje złożony stage</div>
+      <div class="result">Wynik: 4 pliki po kilkadziesiąt kilobajtów + assety zreferowane w miejscu. Geometria istnieje na dysku dokładnie raz.</div>
+      <div class="check">Sprawdzenie: <code>usdcat --flatten shot0100.usd</code> wypisuje złożony wynik jako jeden plik — to podgląd tego, co widzi renderer, a nie nowy zapis sceny.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Kiedy to nie działa</div>
+    <h2>„Zapisałem, a scena tego nie widzi"</h2>
+    <p>Trzy sytuacje odpowiadają za zdecydowaną większość zgłoszeń do pipeline TD (Rozdział 21) w studiu pracującym na USD. Wszystkie trzy wyglądają dla artysty identycznie — zmiana jest w pliku, ale nie ma jej na ekranie — a mają zupełnie różne przyczyny.</p>
+
+    <div class="panel debug">
+      <div class="panel-label">Objaw → sprawdzenie → przyczyna</div>
+
+      <div class="case">
+        <p class="symptom">Zmieniłem wartość w swojej warstwie, plik się zapisał, stage pokazuje starą.</p>
+        <p class="cause">Inna warstwa ma silniejszą opinię o tym samym atrybucie tego samego prima. Najczęściej stoi wyżej na liście <code>subLayers</code> albo wchodzi silniejszym rodzajem arca (Dodatek B).</p>
+        <p class="check">Sprawdzenie: w <code>usdview</code> zaznacz prim i otwórz zakładkę <code>Composition</code> — pokaże listę wszystkich warstw mających opinię o tym primie, w kolejności siły. Ta na górze wygrywa.</p>
+      </div>
+
+      <div class="case">
+        <p class="symptom">Scena otwiera się „pusta" albo widać same pudełka zamiast geometrii.</p>
+        <p class="cause">Payloady nie zostały rozwinięte. To nie awaria, tylko celowe zachowanie: ciężkie dane wczytują się dopiero na żądanie.</p>
+        <p class="check">Sprawdzenie: <code>usdview --unloaded</code> otwiera scenę właśnie w tym stanie; w kodzie odpowiada mu <code>Usd.Stage.Open(..., Usd.Stage.LoadNone)</code>, a rozwinięcie to <code>stage.Load(prim_path)</code>.</p>
+      </div>
+
+      <div class="case">
+        <p class="symptom">„Failed to open layer" albo asset wchodzi u kolegi, a u mnie nie.</p>
+        <p class="cause">Ścieżka assetu nie rozwiązała się do tego samego pliku. Ścieżki względne w USD liczone są od warstwy, w której są zapisane, a nie od otwartego stage'u — a w studiu dodatkowo przechodzą przez asset resolver, który u każdego może być skonfigurowany inaczej.</p>
+        <p class="check">Sprawdzenie: <code>usdresolve &lt;ścieżka-assetu&gt;</code> wypisuje, na jaki konkretny plik rozwiązuje się dany zapis w Twoim środowisku (Rozdział 17).</p>
+      </div>
+    </div>
+
+    <a class="inline-deeper" href="../dodatki/dodatek-b-usd-w-glebi.html">↓ Dodatek B: dlaczego wygrywa ta, a nie inna warstwa</a>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Decyzja</div>
+    <h2>Kiedy USD to za dużo</h2>
+    <p>USD rozwiązuje problem składania scen — i tylko wtedy się opłaca. Jest to system, który trzeba w studiu utrzymywać: skonfigurować resolver, uzgodnić konwencję warstw, pilnować wersji bibliotek i wtyczek w każdym DCC (Rozdział 17). Tam, gdzie zadanie brzmi „przekaż jeden zamknięty wynik", ten koszt się nie zwraca.</p>
+
+    <div class="table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr><th>Sytuacja</th><th>Sięgasz po</th><th>Dlaczego</th></tr>
+        </thead>
+        <tbody>
+          <tr><th>Animacja przekazuje cache do FX</th><td class="yes">Alembic</td><td>Odbiorca niczego nie nadpisuje, liczy się szybki, sekwencyjny odczyt</td></tr>
+          <tr><th>Layout składa shot z czterdziestu assetów</th><td class="yes">USD</td><td>Referencje zamiast kopii — zmiana w assecie wchodzi wszędzie naraz</td></tr>
+          <tr><th>Cztery działy edytują ten sam shot równolegle</th><td class="yes">USD</td><td>Osobne warstwy zamiast jednego pliku, o który się biją</td></tr>
+          <tr><th>Ten sam asset w trzech wersjach stroju</th><td class="yes">USD (variantSet)</td><td>Przełącznik zamiast trzech kopii assetu na dysku</td></tr>
+          <tr><th>Jednorazowa dostawa do klienta bez USD u siebie</th><td>Alembic / FBX</td><td>Odbiorca musiałby odtworzyć Twoją konfigurację resolvera i warstw</td></tr>
+          <tr><th>Mały zespół, jeden DCC, brak działu pipeline</th><td>Alembic + konwencja katalogów</td><td>USD wymaga utrzymania; przy tej skali samo je zjada więcej, niż daje</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">Uwaga: to nie jest wybór „albo–albo" na poziomie całego studia — USD potrafi zreferować plik Alembic jako część własnej kompozycji.</p>
+    <a class="inline-deeper" href="../dodatki/dodatek-c-alembic-vs-usd.html">↓ Dodatek C: Alembic kontra USD, wprost</a>
   </div>
 
   <div class="section">
@@ -95,13 +248,29 @@
       <dd>Gotowy, złożony widok sceny — wynik kompozycji wielu warstw USD w danym momencie.</dd>
       <dt>Layer (warstwa)</dt>
       <dd>Pojedynczy plik USD dokładający własną „opinię" o scenie, edytowany niezależnie od innych.</dd>
+      <dt>Opinia (opinion)</dt>
+      <dd>Konkretna wartość atrybutu zapisana w konkretnej warstwie. Kilka warstw może mieć sprzeczne opinie o tym samym atrybucie — wygrywa najsilniejsza.</dd>
       <dt>Reference (referencja)</dt>
       <dd>Wskazanie na dane w innym pliku zamiast ich kopiowania — podstawa wielokrotnego użycia assetów.</dd>
+      <dt>Payload</dt>
+      <dd>Referencja z odroczonym wczytaniem — dane wchodzą do pamięci dopiero, gdy ktoś ich zażąda.</dd>
+      <dt>Over</dt>
+      <dd>Nadpisanie istniejącego prima bez tworzenia go od nowa — sposób, w jaki dział dopowiada swoje zdanie o cudzych danych.</dd>
       <dt>Variant (wariant)</dt>
       <dd>Jedna z kilku wymiennych opcji tego samego assetu, wybierana bez duplikowania danych.</dd>
       <dt>Prim</dt>
       <dd>Podstawowa jednostka sceny USD (obiekt w hierarchii) — odpowiednik węzła w outlinerze DCC.</dd>
+      <dt>Asset resolver</dt>
+      <dd>Komponent tłumaczący zapis ścieżki assetu (np. <code>asset://hero_char?v=34</code>) na konkretny plik w danym środowisku.</dd>
     </dl>
+  </div>
+
+  <div class="deeper">
+    <div class="deeper-label">Idź głębiej</div>
+    <a href="../dodatki/dodatek-b-usd-w-glebi.html">Dodatek B — USD w głębi: sześć composition arcs, kolejność LIVRPS, payloady i warianty na konkretnym konflikcie</a>
+    <a href="../dodatki/dodatek-c-alembic-vs-usd.html">Dodatek C — Alembic kontra USD: tabela różnic, drzewo decyzyjne i pułapka niezgodnych jednostek</a>
+    <a href="../dodatki/dodatek-p-studia-czesc2-pixar.html">Dodatek P — Pixar: dlaczego studio oddało własny pipeline całej branży</a>
+    <a href="../dodatki/dodatek-s-studia-czesc5-animal-logic-usd.html">Dodatek S — poza Pixarem: jak wygląda adopcja USD w studiu, które go nie napisało</a>
   </div>
 
   <div class="next">

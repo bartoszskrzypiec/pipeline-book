@@ -209,3 +209,37 @@ a:focus-visible,button:focus-visible,input:focus-visible,
   .section{margin:44px 0;}
   .modal-panel{padding:26px 20px 22px;}
 }
+
+/* LISTINGI (prawdziwe fragmenty plików: .usda, package.py, config, dump narzędzia) */
+.listing{background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;}
+.listing-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+.listing pre{margin:0;font-family:var(--mono);font-size:13px;line-height:1.8;color:var(--text);}
+.listing .c{color:var(--text-dim);}
+.listing .s{color:var(--amber);}
+.listing .k{color:var(--violet);}
+.listing .hl{background:rgba(232,163,61,.10);}
+/* Tooltip .vec działał dotąd wyłącznie wewnątrz .formula — listingi potrzebują tego samego. */
+.listing .vec{color:var(--cyan);font-weight:500;cursor:help;border-bottom:1px dotted var(--cyan);}
+
+/* TABELE KOMPROMISÓW ("kiedy tego NIE używać") */
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--bg-panel);margin:26px 0;}
+.compare-table{border-collapse:collapse;width:100%;min-width:520px;font-size:14.5px;}
+.compare-table th,.compare-table td{padding:11px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--border);}
+.compare-table thead th{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);font-weight:500;}
+.compare-table tbody th{font-weight:500;color:var(--text);width:30%;}
+.compare-table tbody td{color:var(--text-dim);}
+.compare-table tr:last-child th,.compare-table tr:last-child td{border-bottom:none;}
+.compare-table .yes{color:var(--amber);}
+.table-note{font-family:var(--mono);font-size:12px;color:var(--text-dim);margin:-14px 0 26px;}
+
+/* DIAGNOSTYKA (objaw → sprawdzenie → przyczyna) */
+.panel.debug .panel-label{color:var(--raster);}
+.panel.debug .case{border-top:1px dashed var(--border);margin-top:20px;padding-top:18px;}
+.panel.debug .case:first-of-type{border-top:none;margin-top:0;padding-top:0;}
+.panel.debug .symptom{font-weight:600;color:var(--text);margin:0 0 8px;font-size:15.5px;}
+.panel.debug .cause{margin:0 0 10px;font-size:15px;color:var(--text);}
+.panel.debug .check{font-family:var(--mono);font-size:12.5px;color:var(--text-dim);margin:0;}
+.panel.debug .check code{color:var(--cyan);font-size:12.5px;}
+
+/* CHIPY JAKO PRZYCISKI (przełączanie warstw diagramu) */
+button.chip{font-family:var(--mono);line-height:1.4;}

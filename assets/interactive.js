@@ -1,4 +1,4 @@
-function openFormulaModal(targetId){
+function openDetailModal(targetId){
   var template = document.getElementById(targetId);
   var overlay = document.getElementById('modal-overlay');
   var panel = document.getElementById('modal-body');
@@ -9,7 +9,7 @@ function openFormulaModal(targetId){
   document.body.style.overflow = 'hidden';
 }
 
-function closeFormulaModal(){
+function closeDetailModal(){
   var overlay = document.getElementById('modal-overlay');
   if(!overlay) return;
   overlay.classList.remove('open');
@@ -19,17 +19,17 @@ function closeFormulaModal(){
 document.addEventListener('click', function(e){
   var trigger = e.target.closest('[data-modal-target]');
   if(trigger){
-    openFormulaModal(trigger.getAttribute('data-modal-target'));
+    openDetailModal(trigger.getAttribute('data-modal-target'));
     return;
   }
   if(e.target.closest('[data-modal-close]') || e.target.id === 'modal-overlay'){
-    closeFormulaModal();
+    closeDetailModal();
   }
 });
 
 document.addEventListener('keydown', function(e){
   if(e.key !== 'Escape') return;
-  closeFormulaModal();
+  closeDetailModal();
   if(window.__hideVecTip) window.__hideVecTip();
 });
 
@@ -113,4 +113,40 @@ document.addEventListener('DOMContentLoaded', function(){
   // odkleiłby się od symbolu, więc chowamy zamiast przeliczać.
   window.addEventListener('scroll', hideTip, {passive: true});
   window.addEventListener('resize', hideTip);
+});
+
+/* ------------------------------------------------------------------
+   PRZEŁĄCZANIE WARSTW DIAGRAMU
+   Odpowiednik toggleRay() z raytracing-book, uogólniony: chip z
+   data-layer="X" gasi grupę SVG z tym samym data-layer (klasa .ray-off).
+   Chipy są <button>, więc klawiatura działa bez dodatkowego kodu —
+   dokładnie tak jak przy .vec[data-tip] niżej.
+   Bez JS wszystkie warstwy zostają widoczne: diagram czyta się statycznie.
+------------------------------------------------------------------- */
+function toggleLayer(chip){
+  var layer = chip.getAttribute('data-layer');
+  var frame = chip.closest('.diagram-frame');
+  if(!layer || !frame) return;
+  var off = chip.classList.toggle('off');
+  chip.setAttribute('aria-pressed', off ? 'false' : 'true');
+  frame.querySelectorAll('[data-layer="' + layer + '"]').forEach(function(el){
+    if(el === chip) return;
+    el.classList.toggle('ray-off', off);
+  });
+}
+
+/* Odsłanianie odpowiedzi w .exercise — przycisk wskazuje id bloku .answer. */
+function revealAnswer(btn){
+  var answer = document.getElementById(btn.getAttribute('data-answer'));
+  if(!answer) return;
+  var shown = answer.classList.toggle('shown');
+  btn.setAttribute('aria-expanded', shown ? 'true' : 'false');
+  btn.textContent = shown ? 'Ukryj odpowiedź' : 'Pokaż odpowiedź';
+}
+
+document.addEventListener('click', function(e){
+  var chip = e.target.closest('.chip[data-layer]');
+  if(chip){ toggleLayer(chip); return; }
+  var reveal = e.target.closest('.reveal-btn[data-answer]');
+  if(reveal) revealAnswer(reveal);
 });
