@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/interactive.js" defer></script>
 </head>
 <body>
 <div class="page">
@@ -23,13 +24,14 @@
     <div class="panel-label">TL;DR</div>
     <ul>
       <li>USD nie ma jednej, luźnej reguły „kto wygrywa" — ma sztywno zdefiniowaną kolejność siły między rodzajami composition arcs, zapamiętywaną skrótem LIVRPS.</li>
+      <li>LIVRPS rozstrzyga wyłącznie <em>między różnymi rodzajami</em> arców. Gdy dwie opinie przychodzą tym samym rodzajem (np. dwie warstwy z <code>over</code>), rozstrzyga kolejność na liście <code>subLayers</code>.</li>
       <li>Reference i payload robią niemal to samo, ale payload pozwala odłożyć wczytanie ciężkich danych na później — różnica, która realnie ratuje czas otwierania sceny z tysiącem drzew.</li>
-      <li>Warianty to przełącznik, nie duplikat: jeden asset niesie wszystkie swoje opcje naraz, a stage wybiera, którą aktywować.</li>
+      <li>Warianty to przełącznik, nie duplikat: jeden asset niesie wszystkie swoje opcje naraz, a stage wybiera, którą aktywować — i przegrywa z każdą lokalną opinią warstwy nad nim.</li>
     </ul>
   </div>
 
   <div class="section">
-    <p>Rozdział 11 celowo uprościł mechanizm USD do trzech pojęć — referencji, warstw i wariantów — żeby dało się zrozumieć ideę kompozycji bez grzęźnięcia w szczegółach. W praktyce USD definiuje sześć różnych rodzajów <span class="term-amber">composition arcs</span>, każdy z inną siłą pierwszeństwa, i to właśnie ta precyzyjna hierarchia sprawia, że złożenie tysięcy warstw daje przewidywalny, powtarzalny wynik za każdym razem.</p>
+    <p>Rozdział 11 celowo uprościł mechanizm USD do trzech pojęć — referencji, warstw i wariantów — żeby dało się zrozumieć ideę kompozycji bez grzęźnięcia w szczegółach. W praktyce USD definiuje sześć różnych rodzajów <span class="term-cyan">composition arcs</span>, każdy z inną siłą pierwszeństwa, i to właśnie ta precyzyjna hierarchia sprawia, że złożenie tysięcy warstw daje przewidywalny, powtarzalny wynik za każdym razem.</p>
   </div>
 
   <div class="section">
@@ -49,15 +51,178 @@
   </div>
 
   <div class="section">
+    <div class="section-eyebrow">Etap: Wszystkie sześć naraz</div>
+    <h2>Jak te arcs wyglądają w pliku</h2>
+    <p>Wszystkie sześć rodzajów można zobaczyć na jednym primie. Poniższy listing jest sztucznie zagęszczony — w realnym pipeline nikt nie używa sześciu arców naraz na jednym obiekcie — ale pokazuje, gdzie dokładnie w składni siedzi każdy z nich.</p>
+
+    <div class="listing">
+      <div class="listing-label"><span>hero_char.usda — sześć arców na jednym primie</span><span>zapis poglądowy</span></div>
+<pre><span class="c">#usda 1.0</span>
+(
+    subLayers = [ <span class="s">@./lighting.usd@</span> ]        <span class="c">// L: opinie lokalne kolejnych warstw</span>
+)
+
+<span class="k">class</span> <span class="s">"_CharacterDefaults"</span>                      <span class="c">// cel dla arca I</span>
+{
+    token purpose = <span class="s">"render"</span>
+}
+
+<span class="k">def</span> Xform <span class="s">"hero_char"</span> (
+    <span class="vec" data-tip="I — dziedziczenie z klasy. Zmiana w klasie wchodzi natychmiast do wszystkich primow, ktore z niej dziedzicza.">inherits</span> = &lt;/_CharacterDefaults&gt;             <span class="c">// I</span>
+    <span class="vec" data-tip="V — wybor wariantu. Sam zestaw opcji jest zapisany w assecie, tu zapada tylko decyzja, ktora jest aktywna.">variants</span> = {
+        string costume = <span class="s">"torn"</span>                  <span class="c">// V</span>
+    }
+    <span class="k">prepend</span> references = <span class="s">@./model/hero_char_model_v034.usd@</span>   <span class="c">// R</span>
+    <span class="vec" data-tip="P — jak reference, ale dane nie wchodza do pamieci, dopoki ktos ich jawnie nie zazada.">prepend payload</span> = <span class="s">@./fur/hero_char_fur_v003.usd@</span>       <span class="c">// P</span>
+    <span class="k">specializes</span> = &lt;/_HeroLook&gt;                    <span class="c">// S</span>
+)
+{
+    token visibility = <span class="s">"inherited"</span>               <span class="c">// L: opinia lokalna tej warstwy</span>
+}</pre>
+    </div>
+
+    <p>Dwa słowa, które w tym listingu robią najwięcej: <code>class</code> tworzy prim, który sam z siebie nie trafia do renderu — istnieje po to, żeby inne primy mogły z niego dziedziczyć (<code>inherits</code>). <code>prepend</code> oznacza „dołóż na początek listy", czyli jako silniejsze od tego, co już na niej jest — bo referencje i payloady są listami, a nie pojedynczymi wartościami, i kolejne warstwy mogą do nich dokładać.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Konflikt rozstrzygnięty krok po kroku</div>
+    <h2>Dlaczego przełączenie wariantu „nic nie robi"</h2>
+    <p>Oto sytuacja z prawdziwego zgłoszenia do pipeline TD. Postać <code>hero_char</code> ma wariant stroju <code>costume</code> z opcjami <code>default</code> i <code>torn</code>; wariant <code>torn</code> ukrywa plecak (<code>/World/hero_char/backpack</code> dostaje <code>visibility = "invisible"</code>). Artysta przełącza wariant na <code>torn</code>, zapisuje — a plecak dalej jest widoczny. Prześledźmy, co USD robi z tym atrybutem, arc po arcu, od najsilniejszego do najsłabszego.</p>
+
+    <div class="worked">
+      <div class="wlabel">/World/hero_char/backpack · atrybut visibility</div>
+      <div class="step"><span class="k">L — local</span> warstwa layoutu: <span class="v">over "backpack" { visibility = "inherited" }</span> → opinia istnieje, <span class="result">wygrywa</span></div>
+      <div class="step"><span class="k">I — inherits</span> brak klasy dla tego prima → opinii brak, arc pominięty</div>
+      <div class="step"><span class="k">V — variant</span> costume = torn: <span class="v">visibility = "invisible"</span> → opinia istnieje, ale L jest silniejsze → przegrywa</div>
+      <div class="step"><span class="k">R — reference</span> hero_char_model_v034: <span class="v">visibility = "inherited"</span> → przegrywa</div>
+      <div class="step"><span class="k">P — payload</span> futro: nie dotyczy tego atrybutu</div>
+      <div class="step"><span class="k">S — specializes</span> _HeroLook: opinii brak</div>
+      <div class="result">Wartość efektywna: visibility = "inherited" — plecak widoczny, mimo aktywnego wariantu „torn".</div>
+      <div class="check">Sprawdzenie: <code>usdview</code> → zaznacz prim → zakładka <code>Composition</code>. Widać tam każdą warstwę mającą opinię o tym primie, w kolejności siły. Naprawa: usunąć zbędny <code>over</code> z warstwy layoutu — nie zmieniać wariantu, bo wariant był poprawny od początku.</div>
+    </div>
+
+    <p>Ta jedna historia tłumaczy większość „dziwnych" zachowań USD w produkcji. Zwróć uwagę, że nic się nie zepsuło: system zadziałał dokładnie zgodnie ze swoją specyfikacją. Zawiodło założenie artysty, że ostatnia zapisana zmiana jest tą, którą widać — w kompozycji nie wygrywa najnowsza opinia, tylko najsilniejsza.</p>
+  </div>
+
+  <div class="diagram-frame">
+    <div class="diagram-hud"><span>Arc.strength</span><span>Kto wygrywa, gdy wyłączyć silniejszych</span></div>
+    <svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Stos szesciu composition arcs z opiniami o atrybucie visibility">
+      <text x="20" y="24" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">NAJSILNIEJSZY</text>
+      <line x1="26" y1="34" x2="26" y2="252" stroke="#2a2f38" stroke-width="1"/>
+      <text x="20" y="274" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">NAJSŁABSZY</text>
+
+      <g class="ray-group" data-layer="l" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="46" y="30" width="620" height="34" rx="6" fill="#20242c" stroke="#e8a33d"/>
+        <text x="62" y="52" font-family="IBM Plex Mono" font-size="12" fill="#e8a33d">L</text>
+        <text x="90" y="52">local — warstwa layoutu</text>
+        <text x="650" y="52" text-anchor="end" font-family="IBM Plex Mono" font-size="11.5" fill="#e8a33d">visibility = "inherited"</text>
+      </g>
+      <g class="ray-group" data-layer="i" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="46" y="68" width="620" height="34" rx="6" fill="#20242c" stroke="#2a2f38"/>
+        <text x="62" y="90" font-family="IBM Plex Mono" font-size="12" fill="#8b909b">I</text>
+        <text x="90" y="90">inherits — brak klasy</text>
+        <text x="650" y="90" text-anchor="end" font-family="IBM Plex Mono" font-size="11.5" fill="#8b909b">— brak opinii —</text>
+      </g>
+      <g class="ray-group" data-layer="v" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="46" y="106" width="620" height="34" rx="6" fill="#20242c" stroke="#9c82d8" stroke-opacity="0.8"/>
+        <text x="62" y="128" font-family="IBM Plex Mono" font-size="12" fill="#9c82d8">V</text>
+        <text x="90" y="128">variant — costume = "torn"</text>
+        <text x="650" y="128" text-anchor="end" font-family="IBM Plex Mono" font-size="11.5" fill="#9c82d8">visibility = "invisible"</text>
+      </g>
+      <g class="ray-group" data-layer="r" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="46" y="144" width="620" height="34" rx="6" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.7"/>
+        <text x="62" y="166" font-family="IBM Plex Mono" font-size="12" fill="#4fc3c0">R</text>
+        <text x="90" y="166">reference — asset v034</text>
+        <text x="650" y="166" text-anchor="end" font-family="IBM Plex Mono" font-size="11.5" fill="#4fc3c0">visibility = "inherited"</text>
+      </g>
+      <g class="ray-group" data-layer="p" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="46" y="182" width="620" height="34" rx="6" fill="#20242c" stroke="#2a2f38"/>
+        <text x="62" y="204" font-family="IBM Plex Mono" font-size="12" fill="#8b909b">P</text>
+        <text x="90" y="204">payload — futro</text>
+        <text x="650" y="204" text-anchor="end" font-family="IBM Plex Mono" font-size="11.5" fill="#8b909b">— nie dotyczy —</text>
+      </g>
+      <g class="ray-group" data-layer="s" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="46" y="220" width="620" height="34" rx="6" fill="#20242c" stroke="#2a2f38"/>
+        <text x="62" y="242" font-family="IBM Plex Mono" font-size="12" fill="#8b909b">S</text>
+        <text x="90" y="242">specializes — _HeroLook</text>
+        <text x="650" y="242" text-anchor="end" font-family="IBM Plex Mono" font-size="11.5" fill="#8b909b">— brak opinii —</text>
+      </g>
+    </svg>
+    <div class="legend">
+      <button type="button" class="chip" data-layer="l" aria-pressed="true"><span class="dot" style="background:#e8a33d"></span>L local</button>
+      <button type="button" class="chip" data-layer="i" aria-pressed="true"><span class="dot" style="background:#8b909b"></span>I inherits</button>
+      <button type="button" class="chip" data-layer="v" aria-pressed="true"><span class="dot" style="background:#9c82d8"></span>V variant</button>
+      <button type="button" class="chip" data-layer="r" aria-pressed="true"><span class="dot" style="background:#4fc3c0"></span>R reference</button>
+      <button type="button" class="chip" data-layer="p" aria-pressed="true"><span class="dot" style="background:#8b909b"></span>P payload</button>
+      <button type="button" class="chip" data-layer="s" aria-pressed="true"><span class="dot" style="background:#8b909b"></span>S specializes</button>
+    </div>
+    <div class="diagram-caption">Wygrywa zawsze najwyższy zapalony wiersz, który ma jakąkolwiek opinię. Wyłącz L, a przejmuje wariant — dokładnie to zrobiłoby usunięcie zbędnego <code>over</code> z warstwy layoutu.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Sprawdź się</div>
+    <h2>Dwa konflikty do rozstrzygnięcia</h2>
+
+    <div class="exercise">
+      <div class="elabel">Zadanie 1</div>
+      <div class="given">Asset ustawia displayColor = czerwony. Wariant look = "blue" ustawia displayColor = niebieski. Żadna warstwa shotu nie ma lokalnej opinii o tym atrybucie. Co widzi stage?</div>
+      <button type="button" class="reveal-btn" data-answer="odp1" aria-expanded="false">Pokaż odpowiedź</button>
+      <div class="answer" id="odp1">
+        <div class="line">Niebieski — <span class="res">V wygrywa z R</span>.</div>
+        <div class="line">Wariant jest silniejszy od referencji, więc opinia zapisana w wariancie przykrywa tę z referowanego assetu. Dopóki nikt nie dopisze opinii lokalnej, przełącznik wariantu działa dokładnie tak, jak artysta się spodziewa.</div>
+      </div>
+    </div>
+
+    <div class="exercise">
+      <div class="elabel">Zadanie 2</div>
+      <div class="given">Warstwa fx ma over z visibility = "invisible". Warstwa lightingu, stojąca wyżej na liście subLayers, ma over z visibility = "inherited". Obie opinie są lokalne. Które LIVRPS wybierze?</div>
+      <button type="button" class="reveal-btn" data-answer="odp2" aria-expanded="false">Pokaż odpowiedź</button>
+      <div class="answer" id="odp2">
+        <div class="line">Widoczny — wygrywa <span class="res">lighting</span>, ale nie z powodu LIVRPS.</div>
+        <div class="line">Obie opinie wchodzą tym samym rodzajem arca (L), więc LIVRPS nie ma tu nic do rozstrzygnięcia. Decyduje kolejność na liście subLayers: pierwsza pozycja jest najsilniejsza.</div>
+        <div class="line">Reguła do zapamiętania: LIVRPS rozstrzyga <span class="res">między rodzajami</span> arców, kolejność warstw — <span class="res">wewnątrz jednego rodzaju</span>.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
     <div class="section-eyebrow">Etap: Reference kontra payload</div>
     <h2>Ta sama idea, inny moment wczytania</h2>
     <p>Reference i payload robią dokładnie to samo w sensie strukturalnym — włączają dane z innego pliku w bieżącą scenę — różnią się wyłącznie momentem, w którym te dane faktycznie trafiają do pamięci. Reference wczytuje się razem z resztą sceny, natychmiast. Payload zostaje w stanie „nierozwiniętym", dopóki ktoś (artysta albo skrypt) jawnie nie zażąda jego rozwinięcia. Środowisko z dziesięcioma tysiącami drzew z Rozdziału 3 typowo używa payloadów dla samych drzew — layout widzi ich lekkie „bounding boxy" i może rozstawiać kompozycję kadru, nie czekając, aż każde z dziesięciu tysięcy drzew wczyta swoją pełną geometrię. Dopiero lighting, tuż przed renderem, rozwija payloady do pełnych danych.</p>
+
+    <div class="listing">
+      <div class="listing-label"><span>Sterowanie rozwijaniem payloadów</span><span>usdview i Python</span></div>
+<pre><span class="c"># otwórz scenę bez rozwijania czegokolwiek</span>
+usdview --unloaded shot0100.usd
+
+<span class="c"># to samo z poziomu kodu narzędzia (Rozdział 15)</span>
+<span class="k">from</span> pxr <span class="k">import</span> Usd
+stage = Usd.Stage.Open(<span class="s">"shot0100.usd"</span>, Usd.Stage.LoadNone)
+stage.Load(<span class="s">"/World/forest/tree_0421"</span>)   <span class="c"># rozwiń tylko to, czego potrzebujesz</span></pre>
+    </div>
+
+    <p>Różnica w czasie otwierania sceny bywa w produkcji różnicą między sekundami a minutami — ale skala zależy od liczby assetów, storage'u (Rozdział 20) i tego, co dokładnie siedzi w payloadzie, więc traktuj tę proporcję jako ilustrację, nie jako pomiar. Zasada jest natomiast niezależna od skali: <span class="term-amber">dane, których dany dział nie ogląda, nie powinny trafiać do jego pamięci</span>.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Pułapka instancingu</div>
+    <h2>Dlaczego „over" czasem nie ma czego nadpisać</h2>
+    <p>Prim oznaczony jako <code>instanceable = true</code> przestaje być zwykłym primem: USD traktuje go jako instancję współdzielonego <span class="term-cyan">prototypu</span> i celowo nie pozwala edytować jego wnętrza. To właśnie ten mechanizm sprawia, że dziesięć tysięcy drzew kosztuje pamięciowo tyle, co kilka — ale ma cenę. Próba dopisania <code>over</code> na primie <em>wewnątrz</em> instancji nie zadziała: opinia zostanie zapisana w pliku i po prostu zignorowana przy kompozycji.</p>
+    <p>Wyjścia są trzy, w kolejności od najtańszego: nadpisać coś, co instancing dopuszcza (transform i widoczność samej instancji), wyłączyć instancing na tym jednym primie (<code>instanceable = false</code> — traci się oszczędność pamięci dla tego egzemplarza) albo — najczystsze rozwiązanie pipeline'owe — zrobić z tej odmiany osobny wariant w assecie, żeby wszystkie shoty korzystały z tej samej, opublikowanej opcji. W <code>usdview</code> rozpoznasz instancję po tym, że jej wnętrze prowadzi do prima prototypu o nazwie w rodzaju <code>/__Prototype_1</code>; w kodzie odpowiada temu <code>prim.IsInstance()</code>.</p>
   </div>
 
   <div class="section">
     <div class="section-eyebrow">Etap: Warianty w praktyce</div>
     <h2>Jeden asset, wiele zamkniętych w nim opcji</h2>
-    <p>Variant set to nazwany zestaw alternatyw zapisanych wewnątrz tego samego assetu — na przykład <code>costume_variant</code> z opcjami <code>default</code>, <code>torn</code>, <code>armored</code> dla tej samej postaci. Wybór wariantu nie kopiuje niczego — to tylko przełącznik mówiący USD, którą z już istniejących, zapisanych opcji aktywować przy składaniu stage'u. Dzięki temu shot może pokazać postać w podartym stroju, a shot obok — tę samą postać w standardowym, bez utrzymywania dwóch osobnych kopii całego assetu na dysku.</p>
+    <p>Variant set to nazwany zestaw alternatyw zapisanych wewnątrz tego samego assetu — na przykład <code>costume</code> z opcjami <code>default</code>, <code>torn</code>, <code>armored</code> dla tej samej postaci. Wybór wariantu nie kopiuje niczego — to tylko przełącznik mówiący USD, którą z już istniejących, zapisanych opcji aktywować przy składaniu stage'u. Dzięki temu shot może pokazać postać w podartym stroju, a shot obok — tę samą postać w standardowym, bez utrzymywania dwóch osobnych kopii całego assetu na dysku.</p>
+    <p>Warto pamiętać o konsekwencji, którą pokazał konflikt z tego dodatku: skoro wariant jest tylko trzecim co do siły arcem, to każda lokalna opinia warstwy stojącej nad nim go przykryje. Dlatego narzędzia publishujące (Rozdział 7) zwykle pilnują, żeby warstwy shotu nie zapisywały lokalnych opinii tam, gdzie decyzja należy do assetu.</p>
+  </div>
+
+  <div class="deeper">
+    <div class="deeper-label">Idź głębiej</div>
+    <a href="../rozdzialy/rozdzial-11-usd.html">Rozdział 11 — USD od strony mechanizmu: warstwy, stage i plik shotu od środka</a>
+    <a href="dodatek-c-alembic-vs-usd.html">Dodatek C — kiedy zamiast całej tej kompozycji wystarczy zwykły cache</a>
+    <a href="dodatek-s-studia-czesc5-animal-logic-usd.html">Dodatek S — jak studio, które nie napisało USD, adoptuje go u siebie</a>
   </div>
 
 <div class="site-nav">
