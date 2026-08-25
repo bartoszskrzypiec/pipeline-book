@@ -12,16 +12,111 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 08/22</span><span>CZĘŚĆ · II</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>TASK · lighting / shot0100</span><span>STATUS · pending review</span><span>VERSION · v012</span>
   </div>
 
   <div class="eyebrow">Rozdział 8 / Dane i wersje</div>
   <h1>Śledzenie produkcji: Shotgun/ShotGrid, ftrack, Kitsu</h1>
   <p class="subtitle">Skąd supervisor wie, że Twój shot czeka na review — i jak status w przeglądarce zamienia się w plik na dysku.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>System śledzenia produkcji to baza danych modelująca hierarchię z Rozdziału 2 (show/sequence/shot/asset/task) jako rekordy z polami status, właściciel, termin i historia.</li>
+      <li>Kluczowa encja to Version — powstaje przy każdej publikacji (Rozdział 7), niesie miniaturkę do przeglądu i status, i to ona łączy plik na dysku z tym, co widzi supervisor w przeglądarce.</li>
+      <li>ShotGrid, ftrack i Kitsu to trzy najpopularniejsze wdrożenia dokładnie tego samego modelu — różnią się integracją i licencją, nie samą ideą.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 7 wspomniał, że publikacja „rejestruje nową wersję w systemie śledzenia" — to właśnie ten system jest tematem tego rozdziału. Dla artysty bywa on najbardziej widocznym elementem całego pipeline'u: to strona w przeglądarce, którą otwiera każdego ranka, żeby zobaczyć listę swoich tasków na dziś. Pod spodem to jednak coś znacznie prostszego niż wygląda — baza danych, zbudowana wokół tej samej hierarchii, którą poznałeś w Rozdziale 2.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Model danych</div>
+    <h2>Ta sama hierarchia, teraz jako rekordy</h2>
+    <p>Show, sequence, shot, asset i task z Rozdziału 2 nie są w systemie śledzenia metaforą — są dosłownymi tabelami w bazie danych, połączonymi relacjami. Rekord <code>Shot</code> ma pole wskazujące na rekord <code>Sequence</code>, do którego należy; rekord <code>Task</code> ma pole wskazujące, do jakiego <code>Shot</code> albo <code>Asset</code> należy, kto jest jego właścicielem (<code>assignee</code>) i jaki ma obecnie <code>status</code>: <code>not started</code>, <code>in progress</code>, <code>pending review</code>, <code>needs work</code>, <code>approved</code>. Kiedy supervisor otwiera dashboard swojego shotu, widzi po prostu zapytanie do tej bazy — wszystkie taski powiązane z tym jednym rekordem <code>Shot</code>, posortowane po dziale i statusie.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Version — łącznik z dyskiem</div>
+    <h2>Encja, która spina Rozdział 7 z tym, co widać na ekranie</h2>
+    <p>Najważniejsza encja w tym modelu, z punktu widzenia całej reszty tej książki, to <span class="term-amber">Version</span>. Powstaje dokładnie w momencie publikacji: niesie odnośnik do rzeczywistego pliku w depocie Perforce (Rozdział 6), miniaturkę albo playblast do szybkiego podglądu bez otwierania ciężkiego pliku źródłowego, oraz własny status, niezależny od statusu całego taska. Jeden task może mieć dziesiątki Version — kolejne próby, poprawki, iteracje — a status taska jako całości zwykle po prostu odzwierciedla status jego najnowszej Version.</p>
+    <p>To właśnie Version jest tym, co odpowiada na pytanie z podtytułu tego rozdziału: status w przeglądarce nie jest oderwaną etykietą — to pole rekordu, który wskazuje na konkretny plik na dysku. Zmiana statusu tego rekordu (np. z <code>pending review</code> na <code>approved</code>) jest tym, co loader z Rozdziału 7 sprawdza, zanim zaproponuje komuś tę wersję jako „najnowszą zatwierdzoną".</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Cykl review</div>
+    <h2>Dailies w praktyce</h2>
+    <p>Codzienny (albo kilkurazowy w tygodniu) przegląd nowych wersji, zwany <span class="term-cyan">dailies</span>, to rytuał, wokół którego system śledzenia jest w praktyce zbudowany. Supervisor grupuje kilkanaście czy kilkadziesiąt Version od różnych artystów w jedną <span class="term-violet">playlistę</span>, ogląda je po kolei, i przy każdej zostawia <span class="term-amber">notatkę</span> — czasem tekstową, czasem narysowaną wprost na klatce obrazu — razem ze zmianą statusu.</p>
+
+    <div class="diagram-frame">
+      <div class="diagram-hud"><span>Review.cycle</span><span>Od publikacji do feedbacku</span></div>
+      <svg viewBox="0 0 780 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrRev" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+          </marker>
+        </defs>
+        <g font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+          <rect x="20" y="40" width="160" height="52" rx="8" fill="#20242c" stroke="#6e93be" stroke-opacity="0.6"/>
+          <text x="100" y="61" text-anchor="middle">Artysta publikuje</text>
+          <text x="100" y="78" text-anchor="middle" fill="#8b909b">Rozdział 7</text>
+
+          <rect x="220" y="40" width="160" height="52" rx="8" fill="#20242c" stroke="#e8a33d" stroke-opacity="0.7"/>
+          <text x="300" y="61" text-anchor="middle">Powstaje Version</text>
+          <text x="300" y="78" text-anchor="middle" fill="#8b909b">status: pending review</text>
+
+          <rect x="420" y="40" width="160" height="52" rx="8" fill="#20242c" stroke="#9c82d8" stroke-opacity="0.7"/>
+          <text x="500" y="61" text-anchor="middle">Supervisor ogląda</text>
+          <text x="500" y="78" text-anchor="middle" fill="#8b909b">w playliście dailies</text>
+
+          <rect x="620" y="40" width="140" height="52" rx="8" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.8"/>
+          <text x="690" y="61" text-anchor="middle">Notatka + status</text>
+          <text x="690" y="78" text-anchor="middle" fill="#8b909b">approved / needs work</text>
+        </g>
+        <line x1="180" y1="66" x2="218" y2="66" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrRev)"/>
+        <line x1="380" y1="66" x2="418" y2="66" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrRev)"/>
+        <line x1="580" y1="66" x2="618" y2="66" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrRev)"/>
+
+        <path d="M 690 92 C 690 160, 100 160, 100 94" fill="none" stroke="#4fc3c0" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrRev)"/>
+        <text x="395" y="182" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#4fc3c0">jeśli „needs work" — artysta poprawia i publikuje kolejną Version</text>
+      </svg>
+    </div>
+
+    <p>Ten cykl powtarza się tyle razy, ile potrzeba, aż Version dostanie status <code>approved</code> — dopiero wtedy staje się tą wersją, którą inne działy zobaczą jako domyślną, zgodnie z mechanizmem z Rozdziału 7.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Trzy wdrożenia tego samego pomysłu</div>
+    <h2>ShotGrid, ftrack, Kitsu</h2>
+    <ul class="compact">
+      <li><strong>ShotGrid</strong> (dawniej Shotgun, dziś część Autodesk) — najbardziej rozpowszechniony w dużych studiach VFX, ściśle zintegrowany z Shotgrid Toolkit, własnym frameworkiem do budowy narzędzi pipeline'owych spinających go z DCC.</li>
+      <li><strong>ftrack</strong> — popularna alternatywa, ceniona za czytelniejsze, nowocześniejsze API i elastyczność konfiguracji; częsty wybór w średniej wielkości studiach budujących pipeline od podstaw.</li>
+      <li><strong>Kitsu</strong> — otwartoźródłowy system stworzony przez CGWire, używany m.in. w produkcjach Blender Studio; naturalny wybór tam, gdzie liczy się brak licencji i pełna kontrola nad hostingiem.</li>
+    </ul>
+    <p>Różnice między nimi dotyczą głównie API, kosztu licencji i tego, jak głęboko integrują się z konkretnymi DCC — model danych z tej sekcji, encje Project/Shot/Task/Version i cykl dailies, jest w praktyce niemal identyczny we wszystkich trzech. Dokładniejsze porównanie schematu i mechanizmu eventów znajdziesz w Dodatku F.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Entity / rekord</dt>
+      <dd>Jeden wpis w bazie systemu śledzenia — np. konkretny Shot, Task czy Version.</dd>
+      <dt>Version</dt>
+      <dd>Rekord powstający przy publikacji; niesie link do pliku, miniaturkę i status niezależny od całego taska.</dd>
+      <dt>Playlist</dt>
+      <dd>Zestaw Version zgrupowanych do wspólnego przeglądu, zwykle na potrzeby jednej sesji dailies.</dd>
+      <dt>Dailies</dt>
+      <dd>Cykliczny przegląd nowych wersji przez supervisora, kończący się notatką i zmianą statusu.</dd>
+      <dt>Note (notatka)</dt>
+      <dd>Komentarz — tekstowy albo narysowany na klatce — dołączony do konkretnej Version.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Część II domyka temat danych produkcyjnych. Część III wraca do Gita — tym razem nie jako (nieudanego) rozwiązania dla plików artystów, tylko jako właściwego narzędzia do wersjonowania kodu narzędzi, które ten cały system spinają.</p>
   </div>
 
 <div class="site-nav chapter-nav">
