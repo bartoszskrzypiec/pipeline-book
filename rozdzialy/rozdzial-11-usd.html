@@ -12,16 +12,101 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 11/22</span><span>CZĘŚĆ · IV</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>STAGE · shot0100.usd</span><span>WARSTW · 4</span><span>KOPII DANYCH · 0</span>
   </div>
 
   <div class="eyebrow">Rozdział 11 / Wymiana danych</div>
   <h1>USD: uniwersalny opis sceny</h1>
   <p class="subtitle">Jak złożyć środowisko z tysięcy assetów bez kopiowania ich do jednego pliku — problem, który Pixar rozwiązał dla siebie, a potem oddał całej branży.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>USD nie kopiuje assetów do jednego pliku sceny — składa gotowy widok (stage) w locie z osobnych warstw, z których każda dokłada tylko swoją część.</li>
+      <li>Referencje pozwalają użyć tego samego assetu w tysiącu miejsc bez duplikowania danych — generalizacja zasady „jeden asset, wiele shotów" z Rozdziału 2, tym razem dla całych scen.</li>
+      <li>To, co Pixar zbudował dla własnej produkcji i oddał branży w 2016 roku jako otwarty standard, jest dziś wspólnym językiem niemal każdego dużego studia — poznasz to bliżej w Dodatku P.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Wyobraź sobie środowisko lasu z dziesięciu tysięcy drzew, każde nieco inne, plus postacie, pojazdy i rekwizyty porozrzucane po całej scenie. Tradycyjne podejście — zaimportuj wszystko do jednego pliku sceny — zawala się przy takiej skali: plik staje się gigantyczny, każda zmiana w jednym drzewie wymaga ręcznego zaktualizowania dziesięciu tysięcy kopii, a dwóch artystów pracujących nad tą samą sceną (layout i fx) nieustannie nadpisuje sobie nawzajem pracę. USD (Universal Scene Description) istnieje po to, żeby ten problem rozwiązać u źródła.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Kompozycja, nie kopiowanie</div>
+    <h2>Scena składana w locie, nie scalana na stałe</h2>
+    <p>Centralna idea USD nazywa się <span class="term-amber">kompozycją</span>. Zamiast trwale scalać dane wielu assetów w jeden plik, USD trzyma je osobno i składa gotowy widok — nazywany <span class="term-cyan">stage</span> — dopiero w momencie otwarcia albo renderu, na podstawie zestawu reguł mówiących, co się z czego bierze. Każdy plik USD, który dokłada swoją część do tej układanki, nazywa się <span class="term-violet">warstwą</span> (layer). Nic nie jest kopiowane — stage to zawsze żywe złożenie warstw, nie ich trwały zapis.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Trzy podstawowe mechanizmy</div>
+    <h2>Reference, warstwy, warianty</h2>
+    <ul class="compact">
+      <li><strong>Referencja</strong> — wskazanie na inny plik USD (albo Alembic, Rozdział 10) jako źródło danych, zamiast kopiowania ich do bieżącej sceny. Dziesięć tysięcy drzew w lesie to w praktyce dziesięć tysięcy referencji do garstki opublikowanych assetów drzew, nie dziesięć tysięcy kopii geometrii.</li>
+      <li><strong>Warstwy (sublayers)</strong> — kilka plików USD nakłada się na siebie, każdy dokładając własną „opinię" o tej samej scenie: warstwa layoutu ustawia pozycje, warstwa fx dokłada symulację, warstwa lightingu dokłada światła. Każdy dział edytuje wyłącznie swoją warstwę — nikt nie nadpisuje pracy innego działu, bo fizycznie znajduje się ona w innym pliku.</li>
+      <li><strong>Warianty (variants)</strong> — przełącznik pozwalający wybrać jedną z kilku wersji tego samego assetu (inny strój postaci, inny poziom szczegółowości geometrii) bez duplikowania całego assetu dla każdej opcji.</li>
+    </ul>
+    <p>To celowo uproszczony opis — pełne, precyzyjne reguły pierwszeństwa między warstwami (tzw. composition arcs) mają swój dokładny porządek i wyjątki, które rozkładamy krok po kroku w Dodatku B.</p>
+  </div>
+
+  <div class="diagram-frame">
+    <div class="diagram-hud"><span>Stage.compose</span><span>Cztery warstwy, jeden shot</span></div>
+    <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrUsd" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+        </marker>
+      </defs>
+      <g font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="40" y="20" width="280" height="40" rx="7" fill="#20242c" stroke="#6e93be" stroke-opacity="0.7"/>
+        <text x="180" y="45" text-anchor="middle">layout.usd — pozycje assetów</text>
+
+        <rect x="60" y="66" width="280" height="40" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.7"/>
+        <text x="200" y="91" text-anchor="middle">anim.usd — cache animacji</text>
+
+        <rect x="80" y="112" width="280" height="40" rx="7" fill="#20242c" stroke="#9c82d8" stroke-opacity="0.7"/>
+        <text x="220" y="137" text-anchor="middle">fx.usd — symulacje</text>
+
+        <rect x="100" y="158" width="280" height="40" rx="7" fill="#20242c" stroke="#e8a33d" stroke-opacity="0.9"/>
+        <text x="240" y="183" text-anchor="middle">lighting.usd — światła</text>
+      </g>
+
+      <line x1="380" y1="178" x2="470" y2="178" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrUsd)"/>
+
+      <rect x="472" y="120" width="190" height="116" rx="8" fill="#20242c" stroke="#ecebe4"/>
+      <text x="567" y="150" text-anchor="middle" font-family="IBM Plex Sans" font-size="13" font-weight="600" fill="#ecebe4">Stage</text>
+      <text x="567" y="170" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">shot0100.usd</text>
+      <text x="567" y="192" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">złożone w locie,</text>
+      <text x="567" y="208" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">bez kopiowania danych</text>
+    </svg>
+    <div class="diagram-caption">Każdy dział edytuje własną warstwę osobno — stage to ich żywe, nietrwałe złożenie.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Skąd się to wzięło</div>
+    <h2>Narzędzie wewnętrzne, które stało się standardem</h2>
+    <p>USD nie powstał jako projekt akademicki ani inicjatywa konsorcjum — to narzędzie, które Pixar zbudował dla samego siebie, żeby udźwignąć rosnącą złożoność własnych produkcji, od <em>Cars</em> po <em>Coco</em>. W 2016 roku studio zdecydowało się oddać je światu jako otwarty standard. Dziś, dekadę później, USD jest fundamentem pipeline'u w studiach, które nigdy nie miały nic wspólnego z Pixarem — od Weta Digital po Animal Logic — a Alliance for OpenUSD (AOUSD), konsorcjum obejmujące m.in. Apple, Adobe, Nvidię i Autodesk, rozwija go dalej jako wspólną własność całej branży. Bliżej tej historii i decyzji, która za nią stała, przyjrzymy się w Dodatku P (Pixar) i Dodatku S (poza Pixarem).</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Stage</dt>
+      <dd>Gotowy, złożony widok sceny — wynik kompozycji wielu warstw USD w danym momencie.</dd>
+      <dt>Layer (warstwa)</dt>
+      <dd>Pojedynczy plik USD dokładający własną „opinię" o scenie, edytowany niezależnie od innych.</dd>
+      <dt>Reference (referencja)</dt>
+      <dd>Wskazanie na dane w innym pliku zamiast ich kopiowania — podstawa wielokrotnego użycia assetów.</dd>
+      <dt>Variant (wariant)</dt>
+      <dd>Jedna z kilku wymiennych opcji tego samego assetu, wybierana bez duplikowania danych.</dd>
+      <dt>Prim</dt>
+      <dd>Podstawowa jednostka sceny USD (obiekt w hierarchii) — odpowiednik węzła w outlinerze DCC.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Mamy już geometrię (Alembic) i sposób składania całych scen (USD). Następny rozdział zajmuje się czymś równie fundamentalnym i równie łatwym do zepsucia: kolorem — dlaczego ta sama tekstura musi wyglądać identycznie w każdym programie, przez który przechodzi.</p>
   </div>
 
 <div class="site-nav chapter-nav">
