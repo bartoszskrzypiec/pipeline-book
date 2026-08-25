@@ -12,17 +12,44 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>WYKŁAD · Studia w praktyce</span><span>CZĘŚĆ · 3 z 5</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>WYKŁAD · Studia w praktyce</span><span>CZĘŚĆ · 3 z 5</span><span>NARZĘDZIA · MASSIVE, Manuka</span>
   </div>
 
   <div class="eyebrow">Wykład: Studia w praktyce — część 3 z 5</div>
   <h1>Studia w praktyce, część 3: Weta Digital — skala Avatara</h1>
   <p class="subtitle">Setki tysięcy assetów lasu, każdy inny, żaden ręcznie nieumieszczony — pipeline zaprojektowany pod produkcję, w której ręczna praca fizycznie się nie mieści w budżecie czasu.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Weta Digital (dziś Weta FX), wyrosłe z efektów do trylogii <em>Władcy Pierścieni</em>, zbudowało swoją reputację na rozwiązywaniu problemów skali, których żaden gotowy pipeline nie był w stanie unieść — od armii w bitewnych scenach po cały ekosystem lasu w <em>Avatarze</em>.</li>
+      <li>MASSIVE, system symulacji tłumu stworzony pierwotnie na potrzeby bitewnych scen <em>Władcy Pierścieni</em>, to podręcznikowy przykład narzędzia, które musiało powstać, bo problem — setki tysięcy niezależnie zachowujących się postaci — fizycznie nie mieścił się w ręcznej animacji.</li>
+      <li>Manuka, własny renderer Weta oparty na spektralnym path tracingu, to kolejny przykład zasady z części 2 tej serii: studio na tyle duże i wymagające, że opłaca mu się zbudować własny rdzeń renderujący zamiast dostosowywać cudzy.</li>
+    </ul>
   </div>
+
+  <div class="section">
+    <p>Część 3 tej serii pokazuje studio, którego historia pipeline'u jest w gruncie rzeczy historią radzenia sobie ze skalą, która w momencie produkcji przekraczała wszystko, co branża wcześniej widziała — najpierw w Śródziemiu, później na Pandorze.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Kiedy ręczna animacja fizycznie się nie mieści</div>
+    <h2>MASSIVE i bitwy, których nikt nie animował ręcznie</h2>
+    <p>Sceny bitewne w trylogii <em>Władcy Pierścieni</em> — dziesiątki tysięcy wojowników na ekranie naraz — postawiły przed studiem problem nierozwiązywalny metodą animowania każdej postaci z osobna: przy takiej liczbie po prostu zabrakłoby czasu, nawet gdyby zatrudnić całą branżę naraz. Odpowiedzią był <span class="term-amber">MASSIVE</span>, system symulacji tłumu oparty na autonomicznych agentach — każda postać na ekranie podejmuje własne decyzje na podstawie prostych reguł zachowania i tego, co „widzi" wokół siebie, zamiast realizować odgórnie zaanimowaną choreografię. To rozwiązanie strukturalnie identyczne z motywem, który przewija się przez tę książkę: kiedy problem nie mieści się w istniejącym warsztacie, pipeline nie optymalizuje starej metody — zastępuje ją nową.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Skala jako codzienność</div>
+    <h2>Las Pandory i problem, który USD rozwiąże później</h2>
+    <p>Środowiska Pandory w <em>Avatarze</em> postawiły podobny problem na poziomie geometrii, nie animacji: las złożony z setek tysięcy roślin, z których żadna nie mogła zostać ustawiona ręcznie, a każda musiała różnić się od sąsiedniej na tyle, żeby całość nie wyglądała jak powielona kopia. To dokładnie ten sam problem — jak złożyć ogromną scenę z wielokrotnie używanych, ale zróżnicowanych elementów bez ręcznej pracy nad każdym z osobna — który lata później, w innym studiu, rozwiąże USD (Rozdział 11, część 2 tej serii); produkcja <em>Avatara</em> z 2009 roku poprzedzała powstanie USD, więc Weta musiało zmierzyć się z nim własnymi, wewnętrznymi narzędziami proceduralnymi, zanim istniało coś na kształt dzisiejszego wspólnego standardu.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Własny renderer dla własnych potrzeb</div>
+    <h2>Manuka</h2>
+    <p>Podobnie jak Pixar zbudował RenderMan pod własne, specyficzne potrzeby (część 2 tej serii), Weta rozwinęło <span class="term-cyan">Manuka</span> — własny renderer oparty na spektralnym path tracingu, publicznie opisywany przez studio w materiałach technicznych jako architektura zoptymalizowana pod bardzo złożone, wielowarstwowe sieci shaderów typowe dla ich produkcji. To ta sama logika „build vs buy", która pojawia się w tej serii przy każdym dużym studiu: przy wystarczającej skali i wystarczająco specyficznych wymaganiach koszt zbudowania własnego, dopasowanego narzędzia zaczyna wygrywać z kosztem naginania cudzego.</p>
+  </div>
+
     <div class="series-nav">
       <a href="dodatek-o-studia-czesc1-ilm.html">Część 1: ILM</a><a href="dodatek-p-studia-czesc2-pixar.html">Część 2: Pixar</a><span class="current">Część 3: Weta</span><a href="dodatek-r-studia-czesc4-framestore-mpc-dneg.html">Część 4: Framestore/MPC/DNEG</a><a href="dodatek-s-studia-czesc5-animal-logic-usd.html">Część 5: Animal Logic</a>
     </div>
