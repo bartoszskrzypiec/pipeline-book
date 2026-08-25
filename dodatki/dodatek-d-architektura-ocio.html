@@ -12,16 +12,67 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · D</span><span>EXT OF · Rozdział 12</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · D</span><span>FORMAT · YAML</span><span>EXT OF · Rozdział 12</span>
   </div>
 
-  <div class="eyebrow">Dodatek D / Głębiej</div>
+  <div class="eyebrow">Dodatek D / Głębiej: Kolor</div>
   <h1>Architektura configu OpenColorIO</h1>
   <p class="subtitle">Rozdział 12 użył configu OCIO jak gotowego narzędzia. Tu rozkładamy go na czynniki pierwsze: colorspace, role, transformy, wyszukiwanie ścieżki.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Każda przestrzeń kolorów w configu definiuje transform tylko do jednej, wspólnej przestrzeni referencyjnej — nie do każdej innej przestrzeni z osobna — dzięki czemu N przestrzeni potrzebuje tylko N transformów, nie N razy N.</li>
+      <li>Config to zwykle plik YAML z czterema kluczowymi sekcjami: <code>roles</code>, <code>displays</code>, <code>colorspaces</code> i <code>search_path</code>.</li>
+      <li>Sam plik trafia do stacji roboczej i węzła farmy dokładnie mechanizmem z Rozdziału 17 — jako część rozwiązanego środowiska, wskazywana zmienną <code>OCIO</code>.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 12 opisał OCIO jako „jeden config, do którego odwołuje się każde narzędzie" — użyteczny mentalny skrót, ale niewystarczający, jeśli chcesz zrozumieć, dlaczego dodanie nowej przestrzeni kolorów do configu nie wymaga dopisania transformów do każdej innej przestrzeni, która już tam jest. Ten dodatek pokazuje strukturę, która to umożliwia.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Przestrzeń referencyjna jako piasta</div>
+    <h2>N transformów zamiast N razy N</h2>
+    <p>Gdyby OCIO musiał zdefiniować bezpośredni transform między każdą parą przestrzeni kolorów, liczba potrzebnych definicji rosłaby z kwadratem liczby przestrzeni — dziesięć przestrzeni oznaczałoby blisko sto transformów do utrzymania. Zamiast tego każda przestrzeń kolorów w configu definiuje transform tylko w jedną stronę: do wspólnej <span class="term-amber">przestrzeni referencyjnej</span> (<code>to_reference</code>) i z niej z powrotem (<code>from_reference</code>). Konwersja między dwiema dowolnymi przestrzeniami odbywa się zawsze przez ten sam, wspólny punkt pośredni — jak piasta koła, do której dochodzi każda szprycha, zamiast siatki połączeń między każdą parą punktów z osobna. Dziesięć przestrzeni potrzebuje więc dziesięciu par transformów, nie stu.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Role, displays, views</div>
+    <h2>Cztery sekcje, które robią całą robotę</h2>
+    <ul class="compact">
+      <li><strong><code>roles</code></strong> — mapowanie nazw ról (Rozdział 12) na konkretne przestrzenie kolorów zdefiniowane w tym samym configu, np. <code>scene_linear: aces_cg</code>.</li>
+      <li><strong><code>colorspaces</code></strong> — lista wszystkich przestrzeni, każda z własnym transformem do i z przestrzeni referencyjnej — macierzą, krzywą logarytmiczną albo odwołaniem do pliku LUT.</li>
+      <li><strong><code>displays</code></strong> — lista fizycznych urządzeń wyjściowych (np. sRGB, Rec.709, DCI-P3), z których każde oferuje kilka nazwanych <span class="term-cyan">views</span> — konkretnych transformów do wyboru w rozwijanym menu przeglądarki obrazu, jak „ACES", „Log" czy „Raw".</li>
+      <li><strong><code>search_path</code></strong> — lista folderów, w których config szuka plików LUT, do których odwołują się poszczególne przestrzenie kolorów.</li>
+    </ul>
+
+    <div style="background:var(--bg-panel-alt);border:1px solid var(--border);border-radius:8px;padding:16px 22px;margin:22px 0;overflow-x:auto;">
+<pre style="margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.8;color:var(--text);"><span style="color:var(--text-dim);"># uproszczony przykład, nie pełna specyfikacja</span>
+roles:
+  scene_linear: aces_cg
+  default: raw
+
+displays:
+  sRGB:
+    - !&lt;View&gt; {name: ACES, colorspace: aces_output_srgb}
+    - !&lt;View&gt; {name: Raw, colorspace: raw}
+
+colorspaces:
+  - !&lt;ColorSpace&gt;
+    name: aces_cg
+    to_reference: !&lt;MatrixTransform&gt; {matrix: [...]}
+  - !&lt;ColorSpace&gt;
+    name: raw
+    to_reference: !&lt;MatrixTransform&gt; {matrix: [identity]}</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Skąd narzędzie wie, którego configu użyć</div>
+    <h2>Zmienna OCIO, ustawiana za kulisami</h2>
+    <p>Sam plik configu leży zwykle w repozytorium showu, wersjonowany tak jak każdy inny plik konfiguracyjny (Rozdział 9). To, który dokładnie plik jest aktywny w danej sesji, decyduje zmienna środowiskowa <code>OCIO</code>, ustawiana automatycznie przez menedżer środowiska z Rozdziału 17 w momencie budowania kontekstu dla danego showu — artysta nigdy nie wskazuje configu ręcznie, a każde narzędzie odczytujące tę zmienną na starcie dostaje dokładnie tę samą matematykę koloru, niezależnie od tego, na której stacji czy węźle farmy akurat działa.</p>
   </div>
 
 <div class="site-nav">
