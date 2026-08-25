@@ -12,16 +12,63 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · C</span><span>EXT OF · Rozdział 10</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · C</span><span>PORÓWNANIE · Alembic / USD</span><span>EXT OF · Rozdział 10</span>
   </div>
 
-  <div class="eyebrow">Dodatek C / Głębiej</div>
+  <div class="eyebrow">Dodatek C / Głębiej: Wymiana danych</div>
   <h1>Alembic kontra USD: kiedy które</h1>
   <p class="subtitle">Oba zamrażają geometrię w czasie, ale jeden z nich potrafi więcej niż tylko cache'ować kształt — kiedy ta różnica ma znaczenie, a kiedy jest tylko teorią.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Alembic to celowo prosty, wyłącznie do odczytu cache kształtu w czasie — bez kompozycji, bez warstw, bez materiałów.</li>
+      <li>USD potrafi to samo i znacznie więcej — nieniszczące nakładki, warianty, referencje — kosztem większej złożoności silnika, który to wszystko rozwiązuje.</li>
+      <li>To nie zawsze wybór jednego zamiast drugiego: USD potrafi wczytać plik Alembic jako część swojej kompozycji, więc oba formaty często współistnieją w tym samym pipeline.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 10 i Rozdział 11 opisały dwa różne rozwiązania na pierwszy rzut oka podobnego problemu — jak przenieść geometrię między programami i działami. Ten dodatek zestawia je wprost, bo pytanie „Alembic czy USD" pojawia się w realnej pracy pipeline TD częściej, niż sugerowałaby prostota obu poprzednich rozdziałów.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Różna ambicja, nie różna jakość</div>
+    <h2>Cache kontra system kompozycji</h2>
+    <p>Alembic (Rozdział 10) robi celowo jedną rzecz: zapisuje wynik — pozycje, kształty, transformacje w czasie — w formie zoptymalizowanej pod szybki, sekwencyjny odczyt. Nie wie nic o warstwach, wariantach czy nieniszczących nadpisaniach; żeby cokolwiek w nim zmienić, wracasz do źródła i zapiekasz na nowo. USD (Rozdział 11) rozwiązuje szerszy problem — składanie całych scen z wielu, niezależnie edytowalnych warstw — i ta szerokość ambicji ma swoją cenę: silnik kompozycji, który trzeba rozwiązać, zanim cokolwiek się wyświetli, jest z natury bardziej złożony niż sekwencyjny odczyt pliku Alembic.</p>
+  </div>
+
+  <div style="display:flex;gap:20px;flex-wrap:wrap;margin:24px 0;">
+    <div style="flex:1;min-width:260px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--raster);text-transform:uppercase;margin-bottom:12px;">Alembic</div>
+      <ul style="margin:0;padding-left:18px;color:var(--text);">
+        <li>Wyłącznie do odczytu, brak nadpisań</li>
+        <li>Brak materiałów, wyłącznie geometria</li>
+        <li>Prosty, szybki sekwencyjny odczyt</li>
+        <li>Dobry do przekazania jednego, zamkniętego wyniku</li>
+      </ul>
+    </div>
+    <div style="flex:1;min-width:260px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-bottom:12px;">USD</div>
+      <ul style="margin:0;padding-left:18px;color:var(--text);">
+        <li>Nieniszczące warstwy i nadpisania (Dodatek B)</li>
+        <li>Materiały, warianty, pełna scena</li>
+        <li>Silnik kompozycji rozwiązujący warstwy</li>
+        <li>Dobry do składania sceny z wielu źródeł naraz</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Nie zawsze albo-albo</div>
+    <h2>USD potrafi wczytać Alembic jako część siebie</h2>
+    <p>Te dwa formaty nie zawsze konkurują o to samo miejsce w pipeline. USD ma wbudowany mechanizm wczytywania plików <code>.abc</code> bezpośrednio jako część swojej kompozycji — cache z animacji, zapieczony dokładnie tak jak w Rozdziale 10, może zostać zreferowany do warstwy USD tak samo, jak referuje się natywny plik <code>.usd</code>. W praktyce wiele studiów robi dokładnie to: animacja publikuje Alembic, bo dla samego zadania „zapisz ruch" jest prostszy i szybszy w zapisie niż pełna scena USD, a warstwa lightingu czy layoutu referuje ten Alembic wewnątrz swojej kompozycji USD, korzystając z warstw i wariantów tam, gdzie faktycznie są potrzebne.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Kiedy które</div>
+    <h2>Praktyczna reguła kciuka</h2>
+    <p>Jeśli zadanie to „przekaż zamknięty, gotowy wynik, którego nikt po drodze nie musi nieniszcząco nadpisywać" — animację do FX, symulację do compu — Alembic zwykle wystarcza i bywa lżejszy w zapisie. Jeśli zadanie to „złóż całą scenę z assetów, warstw wielu działów i wariantów, które ktoś może jeszcze zmienić po drodze" — pełny shot gotowy do renderu — USD jest narzędziem zaprojektowanym dokładnie pod ten problem. Dobry pipeline rzadko wybiera jedno kosztem drugiego; częściej używa obu, każdego tam, gdzie jego mocna strona faktycznie ma znaczenie.</p>
   </div>
 
 <div class="site-nav">

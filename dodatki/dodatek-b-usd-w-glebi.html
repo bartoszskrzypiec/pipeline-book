@@ -12,16 +12,52 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · B</span><span>EXT OF · Rozdział 11</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · B</span><span>ARC · LIVRPS</span><span>EXT OF · Rozdział 11</span>
   </div>
 
-  <div class="eyebrow">Dodatek B / Głębiej</div>
+  <div class="eyebrow">Dodatek B / Głębiej: USD</div>
   <h1>USD w głębi: warstwy, referencje, payloads, warianty</h1>
-  <p class="subtitle">Rozdział 11 pokazał USD jako czarną skrzynkę, która „jakoś” składa scenę. Ten dodatek otwiera composition arcs krok po kroku, na konkretnym przykładzie.</p>
+  <p class="subtitle">Rozdział 11 pokazał USD jako czarną skrzynkę, która „jakoś" składa scenę. Ten dodatek otwiera composition arcs krok po kroku, na konkretnym przykładzie.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>USD nie ma jednej, luźnej reguły „kto wygrywa" — ma sztywno zdefiniowaną kolejność siły między rodzajami composition arcs, zapamiętywaną skrótem LIVRPS.</li>
+      <li>Reference i payload robią niemal to samo, ale payload pozwala odłożyć wczytanie ciężkich danych na później — różnica, która realnie ratuje czas otwierania sceny z tysiącem drzew.</li>
+      <li>Warianty to przełącznik, nie duplikat: jeden asset niesie wszystkie swoje opcje naraz, a stage wybiera, którą aktywować.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 11 celowo uprościł mechanizm USD do trzech pojęć — referencji, warstw i wariantów — żeby dało się zrozumieć ideę kompozycji bez grzęźnięcia w szczegółach. W praktyce USD definiuje sześć różnych rodzajów <span class="term-amber">composition arcs</span>, każdy z inną siłą pierwszeństwa, i to właśnie ta precyzyjna hierarchia sprawia, że złożenie tysięcy warstw daje przewidywalny, powtarzalny wynik za każdym razem.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Kolejność siły — LIVRPS</div>
+    <h2>Sześć arcs, jedna, sztywna hierarchia</h2>
+    <p>Kiedy dwie warstwy USD mają sprzeczną opinię o tym samym atrybucie tego samego obiektu, coś musi rozstrzygnąć, która wygrywa. USD robi to według stałej kolejności, od najsilniejszej do najsłabszej, zapamiętywanej akronimem <span class="term-cyan">LIVRPS</span>:</p>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin:22px 0;">
+      <div style="display:flex;align-items:center;gap:14px;background:var(--bg-panel);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:6px;padding:12px 18px;"><span style="font-family:var(--mono);color:var(--amber);font-weight:600;min-width:26px;">L</span><span><strong>Local</strong> — bezpośrednie opinie zapisane wprost w tej warstwie.</span></div>
+      <div style="display:flex;align-items:center;gap:14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:12px 18px;"><span style="font-family:var(--mono);color:var(--text-dim);font-weight:600;min-width:26px;">I</span><span><strong>Inherits</strong> — dziedziczenie z „klasy" prima, propagujące zmiany do wszystkich instancji.</span></div>
+      <div style="display:flex;align-items:center;gap:14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:12px 18px;"><span style="font-family:var(--mono);color:var(--text-dim);font-weight:600;min-width:26px;">V</span><span><strong>VariantSets</strong> — aktywnie wybrany wariant spośród zapisanych w assecie opcji.</span></div>
+      <div style="display:flex;align-items:center;gap:14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:12px 18px;"><span style="font-family:var(--mono);color:var(--text-dim);font-weight:600;min-width:26px;">R</span><span><strong>References</strong> — dane włączone z innego pliku, wczytywane od razu.</span></div>
+      <div style="display:flex;align-items:center;gap:14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:12px 18px;"><span style="font-family:var(--mono);color:var(--text-dim);font-weight:600;min-width:26px;">P</span><span><strong>Payload</strong> — jak reference, ale z możliwością odroczenia wczytania.</span></div>
+      <div style="display:flex;align-items:center;gap:14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:12px 18px;"><span style="font-family:var(--mono);color:var(--text-dim);font-weight:600;min-width:26px;">S</span><span><strong>Specializes</strong> — najsłabsza forma dziedziczenia, dla „miękkich" wartości domyślnych.</span></div>
+    </div>
+    <p>W praktyce artysta rzadko musi pamiętać tę kolejność na pamięć — narzędzia pipeline'u (Rozdział 15) budują warstwy tak, żeby zachowanie było intuicyjne. Warto jednak wiedzieć, że kolejność istnieje i jest sztywna, bo to ona tłumaczy sytuacje pozornie niezrozumiałe: dlaczego zmiana w jednej warstwie „nie działa", mimo że plik na pewno się zapisał — zwykle dlatego, że inna warstwa, wyżej w LIVRPS, ma silniejszą opinię o tym samym atrybucie.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Reference kontra payload</div>
+    <h2>Ta sama idea, inny moment wczytania</h2>
+    <p>Reference i payload robią dokładnie to samo w sensie strukturalnym — włączają dane z innego pliku w bieżącą scenę — różnią się wyłącznie momentem, w którym te dane faktycznie trafiają do pamięci. Reference wczytuje się razem z resztą sceny, natychmiast. Payload zostaje w stanie „nierozwiniętym", dopóki ktoś (artysta albo skrypt) jawnie nie zażąda jego rozwinięcia. Środowisko z dziesięcioma tysiącami drzew z Rozdziału 3 typowo używa payloadów dla samych drzew — layout widzi ich lekkie „bounding boxy" i może rozstawiać kompozycję kadru, nie czekając, aż każde z dziesięciu tysięcy drzew wczyta swoją pełną geometrię. Dopiero lighting, tuż przed renderem, rozwija payloady do pełnych danych.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Warianty w praktyce</div>
+    <h2>Jeden asset, wiele zamkniętych w nim opcji</h2>
+    <p>Variant set to nazwany zestaw alternatyw zapisanych wewnątrz tego samego assetu — na przykład <code>costume_variant</code> z opcjami <code>default</code>, <code>torn</code>, <code>armored</code> dla tej samej postaci. Wybór wariantu nie kopiuje niczego — to tylko przełącznik mówiący USD, którą z już istniejących, zapisanych opcji aktywować przy składaniu stage'u. Dzięki temu shot może pokazać postać w podartym stroju, a shot obok — tę samą postać w standardowym, bez utrzymywania dwóch osobnych kopii całego assetu na dysku.</p>
   </div>
 
 <div class="site-nav">
