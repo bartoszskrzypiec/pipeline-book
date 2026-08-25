@@ -12,16 +12,48 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · T</span><span>EXT OF · Rozdział 19</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · T</span><span>FARMA · hybrydowa (on-prem + cloud)</span><span>EXT OF · Rozdział 19</span>
   </div>
 
-  <div class="eyebrow">Dodatek T / Głębiej</div>
+  <div class="eyebrow">Dodatek T / Głębiej: Skalowanie</div>
   <h1>Cloud rendering: farma, która nie stoi w budynku studia</h1>
   <p class="subtitle">Rozdział 19 zakładał farmę pod tym samym dachem co artyści. Co się zmienia, kiedy te maszyny stoją w cudzym centrum danych tysiące kilometrów dalej.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Model job/task/scheduler z Rozdziału 19 nie zmienia się w chmurze — zmienia się wyłącznie to, gdzie fizycznie stoją maszyny wykonujące taski.</li>
+      <li>Transfer danych do i z chmury, nie moc obliczeniowa, staje się głównym wąskim gardłem — dokładnie ten sam problem I/O z Rozdziału 20, tylko przez znacznie wolniejsze łącze niż sieć lokalna.</li>
+      <li>Większość studiów używa modelu hybrydowego: własna farma obsługuje stałe, przewidywalne obciążenie, chmura dokłada elastyczną pojemność tylko wtedy, gdy deadline wymaga więcej mocy niż jest fizycznie na miejscu.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 19 opisał farmę renderową jako pulę maszyn wykonujących joby i taski — bez rozstrzygania, gdzie te maszyny fizycznie stoją. Ten dodatek pokazuje, co się zmienia, kiedy część (albo cała) tej puli to maszyny wynajęte na godziny w chmurze, a nie sprzęt stojący we własnej serwerowni studia.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Ten sam model, inna lokalizacja</div>
+    <h2>Scheduler nie wie, że maszyna jest cudza</h2>
+    <p>Kluczowy fakt upraszczający ten temat: scheduler z Rozdziału 19 w większości przypadków nie musi wiedzieć, że dany worker działa na maszynie wynajętej w chmurze, a nie stojącej piętro niżej. Job dzieli się na taski tak samo, priorytety działają tak samo, agent na maszynie chmurowej odbiera zadanie i zgłasza wynik dokładnie tym samym mechanizmem, co lokalny węzeł. Chmura w tym sensie nie jest osobną architekturą — jest po prostu kolejnym źródłem maszyn dla tego samego mechanizmu.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Transfer jako nowe wąskie gardło</div>
+    <h2>Rozdział 20, tylko wolniej i drożej</h2>
+    <p>To, co realnie się zmienia, to koszt dostępu do danych. Rozdział 20 opisał współdzielony storage jako wąskie gardło nawet w obrębie jednej sieci lokalnej — w chmurze ten sam problem mnoży się przez znacznie wolniejsze i kosztowniejsze łącze internetowe. Tekstury, geometria i cache'e muszą zostać przesłane do chmurowego storage'u, zanim jakikolwiek zdalny worker zacznie liczyć, a wynik renderu musi wrócić tą samą, ograniczoną drogą. Duże studia częściowo rozwiązują to dedykowanymi, prywatnymi łączami do konkretnego dostawcy chmury zamiast publicznego internetu, ale nawet wtedy transfer pozostaje wolniejszy niż sieć wewnątrz jednego data center.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Licencje i bezpieczeństwo</div>
+    <h2>Dwa dodatkowe problemy, których nie ma na miejscu</h2>
+    <p>Licencje na renderer (Rozdział 19) zwykle liczone są inaczej dla maszyn on-premise (stała pula) niż dla maszyn chmurowych, które pojawiają się i znikają w ciągu godzin — dostawcy oprogramowania oferują osobne modele licencjonowania „na godzinę" pod ten scenariusz. Do tego dochodzi pytanie bezpieczeństwa z Dodatku R: wysyłanie niewydanego jeszcze materiału filmowego na infrastrukturę zewnętrznego dostawcy chmury to decyzja kontraktowa, nie tylko techniczna, i część klientów jawnie tego zabrania albo wymaga dodatkowych zabezpieczeń, zanim jakiekolwiek dane opuszczą sieć studia.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Model hybrydowy</div>
+    <h2>Chmura jako zawór bezpieczeństwa, nie podstawa</h2>
+    <p>W praktyce niemal żadne studio nie przenosi całej farmy do chmury na stałe — koszt wynajmu mocy obliczeniowej non-stop szybko przewyższa koszt własnego sprzętu przy stałym, przewidywalnym obciążeniu. Typowy model to farma hybrydowa: własne maszyny obsługują codzienną, bazową pracę, a chmura dokłada dodatkową pojemność dokładnie wtedy, gdy priorytet z Rozdziału 19 tego wymaga — w ostatnim tygodniu przed dostawą, kiedy własna farma fizycznie nie jest w stanie przerobić kolejki w wymaganym czasie.</p>
   </div>
 
 <div class="site-nav">
