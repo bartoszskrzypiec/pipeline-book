@@ -12,16 +12,59 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · H</span><span>EXT OF · Rozdział 7</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · H</span><span>WARSTW UPRAWNIEŃ · 2</span><span>EXT OF · Rozdział 7</span>
   </div>
 
-  <div class="eyebrow">Dodatek H / Głębiej</div>
+  <div class="eyebrow">Dodatek H / Głębiej: Publikacja</div>
   <h1>Bezpieczeństwo i uprawnienia: kto może opublikować finalną wersję</h1>
   <p class="subtitle">Nie każdy artysta powinien móc nadpisać wersję, którą ogląda klient — gate'y zatwierdzeń i uprawnienia na poziomie zadania, nie tylko pliku.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Uprawnienia w pipeline działają na dwóch niezależnych warstwach naraz: kto może zapisać plik (Perforce, Rozdział 6) i kto może zmienić status na „zatwierdzony" w systemie śledzenia (Rozdział 8) — to nie to samo, i dobry pipeline pilnuje obu.</li>
+      <li>Rola artysty pozwala publikować wersje robocze do przeglądu; tylko rola supervisora czy wyższa pozwala oznaczyć wersję jako zatwierdzoną, którą inne działy zobaczą jako domyślną.</li>
+      <li>Najczęstsza, cicha luka bezpieczeństwa to rozjazd między tymi dwiema warstwami — ktoś usunięty z projektu w systemie śledzenia, ale wciąż mający prawo zapisu w Perforce.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 7 wprowadził rozróżnienie między publikacją a zatwierdzeniem, ale zostawił otwarte pytanie: kto dokładnie ma prawo to zatwierdzenie nadać? Ten dodatek pokazuje, że odpowiedź nie leży w jednym miejscu — pipeline pilnuje uprawnień na dwóch, niezależnych od siebie warstwach jednocześnie.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dwie niezależne warstwy uprawnień</div>
+    <h2>Kto może zapisać plik, kto może zmienić status</h2>
+    <p>Pierwsza warstwa to uprawnienia Perforce (Rozdział 6) — tabela protections mówiąca, kto ma prawo odczytu, zapisu czy submitu w danej ścieżce depota. Druga, całkowicie osobna warstwa to <span class="term-amber">role</span> w systemie śledzenia (Rozdział 8) — kto może zmienić status Version na <code>approved</code>, kto może w ogóle utworzyć nowy Task, kto widzi dane finansowe projektu. Te dwie warstwy nie są ze sobą automatycznie zsynchronizowane, bo to dwa różne systemy, zarządzane często przez różne osoby. Praktyczna konsekwencja: usunięcie kogoś z projektu w systemie śledzenia nie odbiera mu automatycznie prawa zapisu w Perforce, jeśli nikt jawnie nie zaktualizuje drugiej warstwy — to jedna z najczęstszych, cichych luk, jakie audyt bezpieczeństwa pipeline'u znajduje w praktyce.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Role w praktyce</div>
+    <h2>Kto może co</h2>
+    <div style="overflow-x:auto;margin:22px 0;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);">
+            <th style="text-align:left;padding:10px 14px;color:var(--text-dim);font-family:var(--mono);font-size:11px;text-transform:uppercase;">Rola</th>
+            <th style="text-align:center;padding:10px 14px;color:var(--text-dim);font-family:var(--mono);font-size:11px;text-transform:uppercase;">Publish WIP</th>
+            <th style="text-align:center;padding:10px 14px;color:var(--text-dim);font-family:var(--mono);font-size:11px;text-transform:uppercase;">Zatwierdź</th>
+            <th style="text-align:center;padding:10px 14px;color:var(--text-dim);font-family:var(--mono);font-size:11px;text-transform:uppercase;">Zmień schemat</th>
+          </tr>
+        </thead>
+        <tbody style="color:var(--text);">
+          <tr style="border-bottom:1px solid var(--border);"><td style="padding:10px 14px;">Artysta</td><td style="text-align:center;padding:10px 14px;color:var(--cyan);">tak</td><td style="text-align:center;padding:10px 14px;color:var(--text-dim);">nie</td><td style="text-align:center;padding:10px 14px;color:var(--text-dim);">nie</td></tr>
+          <tr style="border-bottom:1px solid var(--border);"><td style="padding:10px 14px;">Supervisor</td><td style="text-align:center;padding:10px 14px;color:var(--cyan);">tak</td><td style="text-align:center;padding:10px 14px;color:var(--amber);">tak</td><td style="text-align:center;padding:10px 14px;color:var(--text-dim);">nie</td></tr>
+          <tr><td style="padding:10px 14px;">Pipeline TD / admin</td><td style="text-align:center;padding:10px 14px;color:var(--cyan);">tak</td><td style="text-align:center;padding:10px 14px;color:var(--amber);">tak</td><td style="text-align:center;padding:10px 14px;color:var(--violet);">tak</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>To uproszczony przykład — realny schemat ról bywa bardziej ziarnisty, np. osobne uprawnienie do zatwierdzania tylko we własnym dziale. Zasada pozostaje ta sama: uprawnienie do publikacji roboczej wersji jest szerokie i powszechne, uprawnienie do nadania jej statusu ostatecznego jest wąskie i jawnie przypisane.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Zatwierdzenie jako bramka, nie etykieta</div>
+    <h2>Egzekwowane przez narzędzie, nie tylko przez umowę</h2>
+    <p>W słabo zaprojektowanym pipeline „zatwierdzenie" to tylko konwencja — pole statusu, które teoretycznie zmienia tylko supervisor, ale technicznie może zmienić każdy, kto ma dostęp do interfejsu. Dojrzały pipeline sprawdza rolę użytkownika bezpośrednio w narzędziu, zanim pozwoli na zmianę statusu na <code>approved</code>, i zapisuje w logu, kto i kiedy tej zmiany dokonał — odpowiedź na to samo pytanie o odpowiedzialność, które otworzyło Rozdział 1. Bliżej końca produkcji, tuż przed dostawą materiału, uprawnienia bywają dodatkowo zaostrzane — analogicznie do zamrażania wersji narzędzi z Rozdziału 9 — żeby nikt, nawet w dobrej wierze, nie nadpisał wersji, którą właśnie ogląda klient.</p>
   </div>
 
 <div class="site-nav">
