@@ -12,16 +12,42 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · K</span><span>EXT OF · Rozdział 15</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · K</span><span>FORMAT · .hda / .hdanc</span><span>EXT OF · Rozdział 15</span>
   </div>
 
-  <div class="eyebrow">Dodatek K / Głębiej</div>
+  <div class="eyebrow">Dodatek K / Głębiej: Narzędzia</div>
   <h1>Houdini i HDA: pipeline dla FX i geometrii proceduralnej</h1>
   <p class="subtitle">Digital Asset to węzeł, który artysta może opublikować i przekazać dalej jak każdy inny plik — most między proceduralną siecią a resztą pipeline'u.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>HDA (Houdini Digital Asset) pakuje złożoną sieć węzłów w jeden node o prostym, wystawionym interfejsie — dokładnie ta sama generalizacja co w Rozdziale 15, tylko natywnym mechanizmem Houdiniego zamiast PySide.</li>
+      <li>HDA jest jednocześnie narzędziem i assetem w sensie Rozdziału 2 — sam podlega publikacji (Rozdział 7) i wersjonowaniu jak każdy inny wynik pracy, nie tylko jak zainstalowany globalnie tool.</li>
+      <li>HDA może zostać „zablokowany", chowając wnętrze sieci przed użytkownikiem — ta sama zasada ukrywania złożoności, którą Rozdział 16 opisał dla okien PySide.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 15 opisał generalizację narzędzia w kategoriach ogólnych: skrypt, kontekst, interfejs. Houdini ma własny, natywny mechanizm robiący dokładnie to samo dla sieci proceduralnych — <span class="term-amber">Digital Asset</span> (HDA), i warto zobaczyć, jak dokładnie ten sam wzorzec wygląda w praktyce jednego konkretnego DCC.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Sieć w środku, prosty interfejs na zewnątrz</div>
+    <h2>Ta sama generalizacja, inny mechanizm</h2>
+    <p>Artysta FX buduje złożoną sieć węzłów — generator zniszczeń, system fragmentacji, cały proceduralny efekt — który wewnątrz może liczyć dziesiątki połączonych ze sobą operacji. Zapakowanie tej sieci w <span class="term-cyan">Digital Asset</span> tworzy z niej jeden node z garstką wystawionych parametrów (siła zniszczenia, liczba fragmentów, ziarno losowości), całkowicie chowając wewnętrzną złożoność przed kimś, kto tego narzędzia po prostu chce użyć. To dokładnie ten sam problem i to samo rozwiązanie, co przejście od skryptu do narzędzia w Rozdziale 15 — tylko zaimplementowane wewnątrz samego Houdiniego, nie jako osobne okno PySide.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: HDA jako asset, nie tylko jako tool</div>
+    <h2>Dwie role naraz</h2>
+    <p>Kluczowa różnica względem generycznego narzędzia Pythona z Rozdziału 15: HDA żyje jako node bezpośrednio wewnątrz sceny Houdiniego, więc może zostać potraktowany jednocześnie jak <em>narzędzie</em> (coś, co artysta ładuje i konfiguruje) i jak <em>asset</em> w sensie Rozdziału 2 (coś, co samo jest wynikiem pracy, publikowanym i wersjonowanym). FX TD, który zbuduje dobry generator zniszczeń, publikuje sam plik HDA dokładnie mechanizmem z Rozdziału 7 — z własnym numerem wersji, zarejestrowanym w systemie śledzenia (Rozdział 8) — a inni artyści FX ładują tę opublikowaną wersję do swoich shotów, zamiast kopiować sieć węzłów ręcznie z pliku do pliku.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Blokada wnętrza</div>
+    <h2>Ukrywanie złożoności jest decyzją, nie przypadkiem</h2>
+    <p>HDA można „zablokować" (lock), chowając wewnętrzną sieć węzłów przed edycją — artysta korzystający z narzędzia widzi tylko wystawione parametry, bez możliwości przypadkowego rozgrzebania sieci, którą FX TD starannie budował i testował. To ta sama zasada, co dobrze zaprojektowane okno PySide z Rozdziału 16: interfejs pokazuje dokładnie tyle, ile potrzeba do wykonania zadania, nie więcej — różnica jest tylko w tym, że tutaj granica jest egzekwowana przez sam format pliku, nie przez konwencję czy dobrą wolę.</p>
   </div>
 
 <div class="site-nav">
