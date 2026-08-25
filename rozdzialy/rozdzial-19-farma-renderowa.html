@@ -12,16 +12,86 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 19/22</span><span>CZĘŚĆ · VI</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>JOB · shot0100_lighting</span><span>KLATKI · 1-120</span><span>PRIORYTET · high (deadline: jutro)</span>
   </div>
 
   <div class="eyebrow">Rozdział 19 / Skalowanie</div>
   <h1>Farma renderowa: kolejkowanie tysięcy zadań</h1>
   <p class="subtitle">Jeden shot to może być pięćset klatek na pięciuset maszynach naraz — kto decyduje, co renderuje się najpierw, gdy priorytetów jest więcej niż rdzeni CPU.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Farma renderowa to pula maszyn wykonująca zadania artystów równolegle — jeden shot dzieli się na tyle niezależnych zadań, zwykle po jednej klatce, ile maszyn akurat jest wolnych.</li>
+      <li>Kiedy dziesiątki artystów z kilku show'ów zgłaszają zadania naraz, kolejka nie działa w kolejności zgłoszeń — priorytet zależy od terminu, rangi showu i tego, czy to finalny render, czy test.</li>
+      <li>Każdy węzeł farmy musi rozwiązać dokładnie to samo środowisko co stacja robocza artysty (Rozdział 17) — inaczej klatka wyrenderowana na farmie mogłaby wyglądać inaczej niż jej podgląd na biurku.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Renderowanie finalnej jakości pojedynczej klatki potrafi trwać od kilku minut do kilku godzin. Shot ma zwykle kilkadziesiąt do kilkuset klatek. Renderowanie tego lokalnie, na stacji roboczej artysty, zajęłoby dni — i zablokowałoby mu komputer do jakiejkolwiek innej pracy. Farma renderowa istnieje po to, żeby ten czas ścisnąć z dni do minut, wykorzystując setki albo tysiące maszyn naraz, zamiast jednej.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Job dzieli się na taski</div>
+    <h2>Równoległość z natury problemu</h2>
+    <p>Render kolejnych klatek shotu jest z natury niezależny — klatka 47 nie potrzebuje wyniku klatki 46, żeby się policzyć. Dzięki temu artysta zgłasza jeden <span class="term-amber">job</span> („wyrenderuj shot0100, klatki 1–120"), a farma dzieli go na osobne <span class="term-cyan">taski</span>, zwykle po jednej klatce (albo małej ich grupie), i wysyła każdy task na inną wolną maszynę. Sto dwadzieścia klatek na stu dwudziestu maszynach naraz kończy się w czasie jednej klatki, nie stu dwudziestu.</p>
+
+    <div class="diagram-frame">
+      <div class="diagram-hud"><span>Farm.dispatch</span><span>Jeden job, wiele maszyn</span></div>
+      <svg viewBox="0 0 700 190" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrFarm" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+          </marker>
+        </defs>
+        <rect x="20" y="70" width="160" height="50" rx="8" fill="#20242c" stroke="#e8a33d" stroke-width="1.5"/>
+        <text x="100" y="92" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">Job: shot0100</text>
+        <text x="100" y="108" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#8b909b">120 klatek</text>
+        <line x1="180" y1="95" x2="228" y2="95" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrFarm)"/>
+        <g fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.75">
+          <rect x="240" y="20" width="30" height="30" rx="4"/><rect x="278" y="20" width="30" height="30" rx="4"/><rect x="316" y="20" width="30" height="30" rx="4"/><rect x="354" y="20" width="30" height="30" rx="4"/><rect x="392" y="20" width="30" height="30" rx="4"/><rect x="430" y="20" width="30" height="30" rx="4"/>
+          <rect x="240" y="58" width="30" height="30" rx="4"/><rect x="278" y="58" width="30" height="30" rx="4"/><rect x="316" y="58" width="30" height="30" rx="4"/><rect x="354" y="58" width="30" height="30" rx="4"/><rect x="392" y="58" width="30" height="30" rx="4"/><rect x="430" y="58" width="30" height="30" rx="4"/>
+          <rect x="240" y="96" width="30" height="30" rx="4"/><rect x="278" y="96" width="30" height="30" rx="4"/><rect x="316" y="96" width="30" height="30" rx="4"/><rect x="354" y="96" width="30" height="30" rx="4"/><rect x="392" y="96" width="30" height="30" rx="4"/><rect x="430" y="96" width="30" height="30" rx="4"/>
+          <rect x="240" y="134" width="30" height="30" rx="4"/><rect x="278" y="134" width="30" height="30" rx="4"/><rect x="316" y="134" width="30" height="30" rx="4"/><rect x="354" y="134" width="30" height="30" rx="4"/><rect x="392" y="134" width="30" height="30" rx="4"/><rect x="430" y="134" width="30" height="30" rx="4"/>
+        </g>
+        <text x="470" y="90" font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">← każdy kwadrat to</text>
+        <text x="470" y="106" font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">jedna klatka, jedna</text>
+        <text x="470" y="122" font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">maszyna, równolegle</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Kolejka to nie FIFO</div>
+    <h2>Priorytet, nie kolejność zgłoszenia</h2>
+    <p>Gdyby zadania wykonywały się dokładnie w kolejności zgłoszenia, artysta testujący drobną poprawkę światła mógłby zablokować farmę na godziny przed supervisorem, który musi wypuścić finalny render na jutrzejszy deadline. Dlatego kolejka farmy zawsze uwzględnia <span class="term-violet">priorytet</span> — wagę uwzględniającą bliskość terminu, rangę showu (Rozdział 17 pokazał, że różne show'y bywają w bardzo różnych fazach) i typ zadania (finalny render zwykle wyprzedza test). Zadania mogą też zależeć od siebie nawzajem — job compositingu czeka, aż skończy się powiązany job lightingu — a scheduler farmy pilnuje tej kolejności automatycznie, bez ręcznej koordynacji między działami.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Zgłoszenie zadania</div>
+    <h2>Artysta nie kopiuje plików na pięćset maszyn ręcznie</h2>
+    <p>Zgłoszenie na farmę odbywa się przez narzędzie zbudowane dokładnie tak, jak opisano w Rozdziałach 14–16 — okno, które odczytuje kontekst, wskazuje na opublikowaną wersję sceny (Rozdział 7, nigdy plik roboczy) i wysyła job do kolejki. Kluczowy, łatwy do przeoczenia szczegół: każdy węzeł farmy, zanim zacznie liczyć klatkę, sam rozwiązuje dokładnie to samo środowisko, które miał artysta na swojej stacji — tę samą wersję DCC, wtyczek i configu OCIO, przez ten sam menedżer pakietów z Rozdziału 17. Bez tego renderowana klatka mogłaby się subtelnie różnić od tego, co artysta widział w swoim viewporcie, i to właśnie środowisko, nie sam algorytm renderujący, byłoby winne.</p>
+    <p>Trzy najpopularniejsze systemy zarządzające tą kolejką to Deadline (AWS Thinkbox), Tractor (rozwijany przez Pixara) i OpenCue (otwarte źródłowo, wywodzące się z Sony Pictures Imageworks) — różnią się szczegółami architektury, ale rozwiązują dokładnie ten sam problem. Porównanie tych trzech znajdziesz w Dodatku M.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Job</dt>
+      <dd>Zadanie zgłoszone na farmę, dzielone na mniejsze, niezależne taski.</dd>
+      <dt>Task</dt>
+      <dd>Najmniejsza jednostka pracy farmy, zwykle odpowiadająca jednej klatce.</dd>
+      <dt>Scheduler</dt>
+      <dd>Komponent farmy decydujący, który task wykona się na której maszynie i w jakiej kolejności.</dd>
+      <dt>Priorytet</dt>
+      <dd>Waga decydująca o kolejności wykonania zadań, niezależna od czasu zgłoszenia.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Tysiąc maszyn liczących naraz musi też skądś czytać dane — i to szybciej, niż jedna dobra karta sieciowa mogłaby unieść. Następny rozdział pokazuje, dlaczego przy tej skali to właśnie dysk, nie moc obliczeniowa, bywa najdroższym zasobem.</p>
   </div>
 
 <div class="site-nav chapter-nav">
