@@ -12,16 +12,95 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 17/22</span><span>CZĘŚĆ · V</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>SHOW A · maya-2023.1 + tools-v2.10</span><span>SHOW B · maya-2024.2 + tools-v2.14</span><span>MASZYN · wspólna pula</span>
   </div>
 
   <div class="eyebrow">Rozdział 17 / Narzędzia</div>
   <h1>Zarządzanie środowiskiem: dlaczego każdy ma dokładnie te same wersje</h1>
-  <p class="subtitle">„U mnie działa” nie może istnieć w studiu, gdzie ten sam show renderuje się na tysiącu maszyn naraz — po to istnieją menedżery pakietów pipeline'u.</p>
+  <p class="subtitle">„U mnie działa" nie może istnieć w studiu, gdzie ten sam show renderuje się na tysiącu maszyn naraz — po to istnieją menedżery pakietów pipeline'u.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Show zależy od dokładnie jednej, konkretnej kombinacji wersji — DCC, wtyczek, configu OCIO z Rozdziału 12, tagu narzędzi pipeline'u z Rozdziału 9 — i ta kombinacja musi być identyczna na każdej stacji roboczej i każdym węźle farmy.</li>
+      <li>Menedżer pakietów, w VFX najczęściej Rez, rozwiązuje żądaną kombinację wersji na życzenie, budując odizolowane środowisko dla konkretnego showu, zamiast instalować wszystko globalnie na każdej maszynie.</li>
+      <li>To ten sam mechanizm, który fizycznie egzekwuje pinowanie kodu pipeline'u z Rozdziału 9 i dystrybuuje config OCIO z Rozdziału 12 — nie osobna technologia, tylko wspólny dostawca dla obu.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdziały 9 i 12 zostawiły otwarte pytanie: skoro kod pipeline'u bywa „przypięty" tagiem do konkretnego showu, a config OCIO musi być identyczny na każdej maszynie, to <em>co fizycznie</em> to egzekwuje? Odpowiedź to menedżer środowiska — warstwa, która stoi bliżej systemu operacyjnego niż jakikolwiek pojedynczy DCC, i bez której żadna z tych obietnic nie dałaby się dotrzymać w praktyce.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dlaczego globalna instalacja nie działa</div>
+    <h2>Dwa show'y, sprzeczne wymagania, ta sama pula maszyn</h2>
+    <p>Duże studio niemal nigdy nie pracuje nad jedną produkcją naraz. Show A jest tydzień przed oddaniem materiału i musi zostać na dokładnie tej wersji Mayi i tagu narzędzi, na której wszystko zostało przetestowane i zatwierdzone — żadnej aktualizacji, żadnego ryzyka. Show B dopiero się rozkręca i chce najnowszej wersji tych samych narzędzi, z nową funkcją, której A nawet nie potrzebuje. Oba show'y korzystają z tej samej puli stacji roboczych i tej samej farmy renderowej (Rozdział 19). Gdyby jedynym sposobem instalacji oprogramowania było zainstalowanie jednej, globalnej wersji na każdej maszynie, te dwa wymagania byłyby ze sobą fizycznie sprzeczne.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Pakiet i kontekst</div>
+    <h2>Środowisko budowane na życzenie, nie zainstalowane raz na stałe</h2>
+    <p><span class="term-amber">Menedżer pakietów</span> — w VFX najpopularniejszy jest <span class="term-cyan">Rez</span> — rozwiązuje ten problem, traktując każdą wersję każdego narzędzia jako osobny, samodzielny <span class="term-violet">pakiet</span> z jawnie zadeklarowanymi zależnościami od innych pakietów. Zamiast instalować jedną wersję Mayi na stałe, system trzyma obok siebie wiele wersji naraz, nietknięte, i buduje <span class="term-amber">kontekst</span> — konkretne, odizolowane środowisko (zmienne systemowe, ścieżki, załadowane wtyczki) — dopiero w momencie, gdy ktoś go zażąda. Artysta pracujący nad showem A dostaje środowisko z Mayą 2023.1 i tagiem narzędzi v2.10; artysta showu B, siedzący dosłownie przy sąsiednim biurku na identycznym sprzęcie, dostaje Mayę 2024.2 i tag v2.14 — bez konfliktu, bo oba środowiska istnieją tylko w momencie żądania, każde odizolowane od drugiego.</p>
+  </div>
+
+  <div class="diagram-frame">
+    <div class="diagram-hud"><span>Rez.resolve</span><span>Dwa żądania, dwa środowiska</span></div>
+    <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrRez" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+        </marker>
+      </defs>
+      <g font-family="IBM Plex Sans" font-size="11.5" fill="#ecebe4">
+        <rect x="20" y="20" width="180" height="46" rx="7" fill="#20242c" stroke="#6e93be" stroke-opacity="0.7"/>
+        <text x="110" y="48" text-anchor="middle">Żądanie: show A</text>
+        <rect x="20" y="152" width="180" height="46" rx="7" fill="#20242c" stroke="#6e93be" stroke-opacity="0.7"/>
+        <text x="110" y="180" text-anchor="middle">Żądanie: show B</text>
+      </g>
+      <line x1="200" y1="43" x2="268" y2="95" stroke="#e8a33d" stroke-width="1.5" marker-end="url(#arrRez)"/>
+      <line x1="200" y1="175" x2="268" y2="125" stroke="#e8a33d" stroke-width="1.5" marker-end="url(#arrRez)"/>
+
+      <rect x="270" y="80" width="160" height="60" rx="8" fill="#20242c" stroke="#e8a33d" stroke-width="1.5"/>
+      <text x="350" y="105" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" font-weight="600" fill="#ecebe4">Menedżer pakietów</text>
+      <text x="350" y="122" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8b909b">rozwiązuje kontekst</text>
+
+      <line x1="430" y1="95" x2="498" y2="43" stroke="#4fc3c0" stroke-width="1.5" marker-end="url(#arrRez)"/>
+      <line x1="430" y1="125" x2="498" y2="175" stroke="#4fc3c0" stroke-width="1.5" marker-end="url(#arrRez)"/>
+
+      <g font-family="IBM Plex Mono" font-size="10.5" fill="#ecebe4">
+        <rect x="500" y="20" width="180" height="46" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.8"/>
+        <text x="590" y="48" text-anchor="middle">maya-2023.1 + tools-v2.10</text>
+        <rect x="500" y="152" width="180" height="46" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.8"/>
+        <text x="590" y="180" text-anchor="middle">maya-2024.2 + tools-v2.14</text>
+      </g>
+    </svg>
+    <div class="diagram-caption">Dwa odizolowane środowiska, ta sama fizyczna maszyna — konflikt, który globalna instalacja by uniemożliwiła.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Wspólny dostawca, nie osobna technologia</div>
+    <h2>Domyka pętlę z Rozdziałów 9 i 12</h2>
+    <p>Tag przypięty do showu z Rozdziału 9 to w praktyce po prostu wpis w żądaniu kontekstu: „ten show chce pipeline-tools w wersji dokładnie takiej, jaką oznacza ten tag". Zmienna <code>OCIO</code> wskazująca na właściwy config z Rozdziału 12 to ustawienie, które menedżer pakietów wpisuje do środowiska automatycznie, razem z resztą zmiennych, przy każdym uruchomieniu. Menedżer środowiska nie jest więc czwartym, osobnym mechanizmem obok tamtych dwóch — jest fizyczną warstwą, która czyni je egzekwowalnymi, zamiast pozostać dobrymi intencjami zapisanymi w dokumentacji. Głębszy wgląd w to, jak dokładnie Rez rozwiązuje sprzeczne zależności, znajdziesz w Dodatku I.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Pakiet (package)</dt>
+      <dd>Samodzielna, wersjonowana jednostka oprogramowania z jawnie zadeklarowanymi zależnościami.</dd>
+      <dt>Kontekst (context)</dt>
+      <dd>Konkretne, odizolowane środowisko zbudowane na życzenie z rozwiązanego zestawu pakietów.</dd>
+      <dt>Rez</dt>
+      <dd>Najpopularniejszy w VFX menedżer pakietów i środowisk, rozwiązujący zależności per show.</dd>
+      <dt>Pinning (przypinanie)</dt>
+      <dd>Jawne związanie showu z konkretną, niezmienną wersją narzędzia lub configu.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Środowisko jest już stabilne i przewidywalne. Ostatni rozdział tej części pokazuje, co się dzieje, kiedy pipeline przestaje czekać na kliknięcie artysty i zaczyna reagować sam.</p>
   </div>
 
 <div class="site-nav chapter-nav">
