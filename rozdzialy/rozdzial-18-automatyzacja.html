@@ -12,16 +12,92 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 18/22</span><span>CZĘŚĆ · V</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>EVENT · publish: hero_char model v012</span><span>HOOKÓW · 3</span><span>ARTYSTA · nie ingeruje</span>
   </div>
 
   <div class="eyebrow">Rozdział 18 / Narzędzia</div>
   <h1>Automatyzacja: kiedy pipeline reaguje sam</h1>
   <p class="subtitle">Publikacja modelu, która sama generuje playblast i wysyła powiadomienie do riggingu — event, na który ktoś kiedyś napisał hook, i nikt już o tym nie myśli.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Hook (trigger) to fragment kodu, który uruchamia się sam w reakcji na zdarzenie — publikację, zmianę statusu — zamiast czekać, aż ktoś odpali go ręcznie.</li>
+      <li>Ten sam publish z Rozdziału 7 może po cichu wywołać cały łańcuch reakcji: playblast do review, aktualizację miniaturki Version z Rozdziału 8, powiadomienie kolejnego działu — bez udziału artysty w żadnym z tych kroków.</li>
+      <li>Automatyzacja działa dobrze tylko wtedy, gdy jest przewidywalna i udokumentowana — niewidoczny hook, który zaczyna po cichu zawodzić, to nowa wersja chaosu z Rozdziału 1, trudniejsza do zdiagnozowania niż ta pierwsza.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Każdy mechanizm opisany do tej pory w tej książce wymagał, żeby ktoś go świadomie uruchomił — kliknął „Publish", otworzył loader, zmienił status w systemie śledzenia. Ostatni rozdział Części V pokazuje, co się dzieje, gdy pipeline sam zaczyna reagować na te zdarzenia, bez czekania na kolejne kliknięcie.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Zdarzenie jako punkt zaczepienia</div>
+    <h2>Hook — kod, który nikt nie uruchamia ręcznie</h2>
+    <p><span class="term-amber">Hook</span> (albo <span class="term-cyan">trigger</span>) to fragment kodu zarejestrowany tak, żeby odpalić się automatycznie w reakcji na konkretne zdarzenie — publikację nowej wersji, zmianę statusu taska na <code>approved</code>, submit pliku do Perforce. Artysta, który wywołuje to zdarzenie, zwykle nie wie i nie musi wiedzieć, ile hooków się pod nim kryje — z jego perspektywy kliknął jeden przycisk „Publish", i tyle.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Łańcuch reakcji na jeden publish</div>
+    <h2>Jedno kliknięcie, kilka niezależnych skutków</h2>
+    <p>Weźmy dokładnie ten scenariusz z podtytułu rozdziału. Modelarka publikuje nową wersję <code>hero_char</code>. Zanim jeszcze zdąży zamknąć okno narzędzia, w tle mogą uruchomić się trzy zupełnie niezależne hooki: jeden generuje krótki playblast obrotu modelu (turntable) i dołącza go jako miniaturkę do rekordu Version z Rozdziału 8; drugi sprawdza, czy nazwa pliku i struktura sceny odpowiadają konwencji z Rozdziału 4, i oznacza publikację jako podejrzaną, jeśli nie; trzeci wysyła powiadomienie na kanał komunikatora działu riggingu, że nowa wersja czeka do podjęcia.</p>
+
+    <div class="diagram-frame">
+      <div class="diagram-hud"><span>Hook.fanout</span><span>Jeden event, trzy reakcje</span></div>
+      <svg viewBox="0 0 720 240" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrHook" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+          </marker>
+        </defs>
+        <rect x="20" y="96" width="200" height="48" rx="8" fill="#20242c" stroke="#e8a33d" stroke-width="1.5"/>
+        <text x="120" y="121" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">Publish: hero_char</text>
+        <text x="120" y="136" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#8b909b">model v012</text>
+
+        <line x1="220" y1="120" x2="290" y2="40" stroke="#4fc3c0" stroke-width="1.5" marker-end="url(#arrHook)"/>
+        <line x1="220" y1="120" x2="290" y2="120" stroke="#4fc3c0" stroke-width="1.5" marker-end="url(#arrHook)"/>
+        <line x1="220" y1="120" x2="290" y2="200" stroke="#4fc3c0" stroke-width="1.5" marker-end="url(#arrHook)"/>
+
+        <g font-family="IBM Plex Sans" font-size="11.5" fill="#ecebe4">
+          <rect x="292" y="16" width="220" height="48" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.7"/>
+          <text x="402" y="45" text-anchor="middle">Playblast → miniaturka Version</text>
+          <rect x="292" y="96" width="220" height="48" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.7"/>
+          <text x="402" y="125" text-anchor="middle">Walidacja konwencji nazw</text>
+          <rect x="292" y="176" width="220" height="48" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.7"/>
+          <text x="402" y="205" text-anchor="middle">Powiadomienie: dział riggingu</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dwa sposoby podpięcia</div>
+    <h2>Wewnątrz narzędzia albo z zewnątrz, przez zdarzenie bazy</h2>
+    <p>Hooki podpina się na dwa różne sposoby, w zależności od tego, gdzie leży odpowiedzialność. Hook wbudowany bezpośrednio w kod narzędzia publikującego (Rozdział 15) — jako kolejny krok wykonywany po głównej logice — pasuje do reakcji ściśle związanych z samym aktem publikacji, jak generowanie playblastu. Hook zarejestrowany w systemie śledzenia z Rozdziału 8, uruchamiany przez jego własny mechanizm eventów, gdy zmieni się konkretne pole rekordu, pasuje lepiej tam, gdzie reakcja nie powinna zależeć od tego, jakim dokładnie narzędziem ktoś opublikował zmianę — a jedynie od samego faktu, że w bazie coś się zmieniło. Dokładny mechanizm tych eventów pokazuje Dodatek F.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Niewidoczne, więc ryzykowne</div>
+    <h2>Automatyzacja to nowa wersja starego problemu</h2>
+    <p>Automatyzacja jest z definicji niewidoczna — to jej cały sens. To jednak dokładnie ta sama cecha, która czyni ją ryzykowną, jeśli nikt nie prowadzi jej ewidencji. Hook napisany przez kogoś, kto dawno odszedł z zespołu, milcząco zaczyna zawodzić po aktualizacji jednej z zależności — i nikt tego nie zauważa, dopóki ktoś nie zapyta, czemu dział riggingu od tygodnia nie dostaje powiadomień. To ten sam rdzeń problemu, od którego zaczęła się ta książka w Rozdziale 1: brak jednoznacznej odpowiedzi na pytanie „co się właśnie stało i dlaczego" — tylko przeniesiony z plików artystów na kod, którego nikt świadomie nie uruchomił.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Hook / trigger</dt>
+      <dd>Kod uruchamiany automatycznie w reakcji na zdarzenie, bez ręcznego wywołania.</dd>
+      <dt>Event (zdarzenie)</dt>
+      <dd>Zmiana stanu — publikacja, zmiana statusu, submit — na którą hook może reagować.</dd>
+      <dt>Webhook</dt>
+      <dd>Powiadomienie wysyłane przez system zewnętrzny (np. bazę śledzenia) do innego serwisu w momencie zdarzenia.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Część V pokazała, jak powstają narzędzia. Część VI pokazuje, co się dzieje, gdy tych samych narzędzi, tych samych plików i tej samej automatyzacji trzeba użyć nie na jednej maszynie, tylko na tysiącu naraz — zaczynając od farmy renderowej.</p>
   </div>
 
 <div class="site-nav chapter-nav">
