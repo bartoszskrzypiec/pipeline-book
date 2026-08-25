@@ -12,16 +12,145 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 03/22</span><span>CZĘŚĆ · I</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>POTOK · ASSETY + SHOTY</span><span>DZIAŁÓW · 10</span><span>STATUS · pełna mapa</span>
   </div>
 
   <div class="eyebrow">Rozdział 3 / Fundamenty</div>
   <h1>Mapa pipeline'u: od konceptu do finalnej klatki</h1>
   <p class="subtitle">Modeling, rigging, layout, animacja, fx, lighting, comp — jedna mapa pokazująca, co która komórka produkuje i dla kogo, zanim zejdziemy do szczegółów którejkolwiek z nich.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Produkcja to dwa równoległe potoki, które się spotykają: potok assetów (buduje elementy raz) i potok shotów (używa ich wielokrotnie, w konkretnym kontekście sceny).</li>
+      <li>Każdy dział na tej mapie produkuje coś konkretnego dla następnego działu — ten łańcuch przekazań, nie pojedyncze narzędzia, jest tym, co pipeline w praktyce koordynuje.</li>
+      <li>Kolejne rozdziały tej książki wracają do tej samej mapy z bliska — na razie zapamiętaj samą kolejność i to, co realnie płynie między komórkami.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 1 pokazał, dlaczego pipeline w ogóle jest potrzebny. Rozdział 2 dał słownik: show, sequence, shot, task, asset. Ten rozdział łączy oba — pokazuje, przez które konkretnie działy przechodzi asset i shot, zanim staną się klatką filmu. To mapa na dużym planie, celowo bez szczegółów technicznych — każda komórka tej mapy dostanie własny, dokładny rozdział później w książce.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dwa potoki</div>
+    <h2>Potok assetów i potok shotów</h2>
+    <p>Rozdział 2 rozróżnił shoty od assetów jako dwa różne światy produkcji. Ta sama linia dzieli też same działy: część z nich buduje <span class="term-violet">assety</span> — raz, niezależnie od konkretnego ujęcia — a część pracuje bezpośrednio na <span class="term-cyan">shotach</span>, wykorzystując te assety w konkretnym kontekście sceny. Oba potoki biegną równolegle w czasie: dział layoutu może już blokować kompozycję kadru na proxy geometrii, podczas gdy dział riggingu wciąż kończy szkielet tej samej postaci gdzie indziej w produkcji. Spotykają się dopiero wtedy, gdy shot zaczyna korzystać z opublikowanej, gotowej wersji assetu — zwykle na etapie animacji.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Potok assetów</div>
+    <h2>Od konceptu do gotowego assetu</h2>
+    <ul class="compact">
+      <li><strong>Concept / design</strong> — rysunki koncepcyjne i decyzje wizualne, które definiują, jak dany asset ma wyglądać, zanim ktokolwiek otworzy program 3D.</li>
+      <li><strong>Modeling</strong> — budowa geometrii: kształtu postaci, rekwizytu czy środowiska, zwykle jeszcze bez materiałów i bez możliwości animowania.</li>
+      <li><strong>Rigging</strong> — dobudowanie szkieletu i kontrolerów, które pozwalają tę geometrię animować; efektem jest rig, którym posługuje się dział animacji.</li>
+      <li><strong>Surfacing / lookdev</strong> — teksturowanie i budowa sieci shaderów, które nadają geometrii materiał: skórę, metal, tkaninę. Efekt tego etapu to w pełni „ubrany" asset, gotowy do wstawienia w dowolny shot.</li>
+    </ul>
+    <p>Kiedy wszystkie cztery etapy są ukończone i opublikowane (Rozdział 7), asset trafia do biblioteki, z której korzysta dowolny shot w produkcji — dokładnie ten mechanizm „jeden asset, wiele shotów" z poprzedniego rozdziału.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Potok shotów</div>
+    <h2>Od layoutu do finalnej klatki</h2>
+    <ul class="compact">
+      <li><strong>Layout</strong> — ustawienie kamery, zgrubne rozmieszczenie assetów w scenie; odpowiada na pytanie „co widz zobaczy w kadrze", zanim cokolwiek jest dopracowane.</li>
+      <li><strong>Animacja</strong> — ożywienie rigów: ruch postaci, gra aktorska w 3D, timing. To tu shot dostaje swój pierwszy, w pełni ruchomy odpowiednik gotowej sceny.</li>
+      <li><strong>FX / symulacja</strong> — wszystko, czego nie da się ręcznie zanimować: ogień, dym, zniszczenia, tłumy, włosy i ubrania reagujące na ruch z poprzedniego etapu.</li>
+      <li><strong>Lighting</strong> — ustawienie świateł i uruchomienie renderu; scena z gotową animacją i fx zamienia się w obraz.</li>
+      <li><strong>Compositing</strong> — złożenie warstw z renderu (Rozdział 13) w finalny obraz: korekta koloru, dodatkowe efekty 2D, ostateczna „sklejka" tego, co zobaczy widz.</li>
+    </ul>
+    <p>Każdy z tych etapów konsumuje wynik poprzedniego i produkuje coś, czego potrzebuje następny — ta sama logika przekazania, o którą rozbił się chaos z Rozdziału 1, tylko teraz nazwana i uporządkowana.</p>
+  </div>
+
+  <div class="diagram-frame">
+    <div class="diagram-hud"><span>Pipeline.map</span><span>Assety + Shoty, pełny łańcuch</span></div>
+    <svg viewBox="0 0 780 300" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrMapV" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#9c82d8"/>
+        </marker>
+        <marker id="arrMapC" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#4fc3c0"/>
+        </marker>
+        <marker id="arrMapDown" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+        </marker>
+      </defs>
+
+      <text x="20" y="34" font-family="IBM Plex Mono" font-size="12" letter-spacing="1" fill="#9c82d8">ASSETY</text>
+      <g font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="20" y="44" width="150" height="46" rx="7" fill="#20242c" stroke="#9c82d8" stroke-opacity="0.6"/>
+        <text x="95" y="72" text-anchor="middle">Concept</text>
+        <rect x="200" y="44" width="150" height="46" rx="7" fill="#20242c" stroke="#9c82d8" stroke-opacity="0.6"/>
+        <text x="275" y="72" text-anchor="middle">Modeling</text>
+        <rect x="380" y="44" width="150" height="46" rx="7" fill="#20242c" stroke="#9c82d8" stroke-opacity="0.6"/>
+        <text x="455" y="72" text-anchor="middle">Rigging</text>
+        <rect x="560" y="44" width="200" height="46" rx="7" fill="#20242c" stroke="#9c82d8"/>
+        <text x="660" y="72" text-anchor="middle">Surfacing / Lookdev</text>
+      </g>
+      <line x1="170" y1="67" x2="198" y2="67" stroke="#9c82d8" stroke-width="2" marker-end="url(#arrMapV)"/>
+      <line x1="350" y1="67" x2="378" y2="67" stroke="#9c82d8" stroke-width="2" marker-end="url(#arrMapV)"/>
+      <line x1="530" y1="67" x2="558" y2="67" stroke="#9c82d8" stroke-width="2" marker-end="url(#arrMapV)"/>
+
+      <line x1="660" y1="90" x2="660" y2="120" stroke="#e8a33d" stroke-width="2"/>
+      <line x1="660" y1="120" x2="132" y2="120" stroke="#e8a33d" stroke-width="2"/>
+      <line x1="132" y1="120" x2="132" y2="148" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrMapDown)"/>
+      <text x="400" y="112" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#e8a33d">gotowy, opublikowany asset trafia do shotów</text>
+
+      <text x="20" y="174" font-family="IBM Plex Mono" font-size="12" letter-spacing="1" fill="#4fc3c0">SHOTY</text>
+      <g font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="20" y="184" width="132" height="46" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.6"/>
+        <text x="86" y="212" text-anchor="middle">Layout</text>
+        <rect x="176" y="184" width="132" height="46" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.6"/>
+        <text x="242" y="212" text-anchor="middle">Animacja</text>
+        <rect x="332" y="184" width="132" height="46" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.6"/>
+        <text x="398" y="212" text-anchor="middle">FX</text>
+        <rect x="488" y="184" width="132" height="46" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.6"/>
+        <text x="554" y="212" text-anchor="middle">Lighting</text>
+        <rect x="644" y="184" width="132" height="46" rx="7" fill="#20242c" stroke="#4fc3c0"/>
+        <text x="710" y="212" text-anchor="middle">Comp</text>
+      </g>
+      <line x1="152" y1="207" x2="174" y2="207" stroke="#4fc3c0" stroke-width="2" marker-end="url(#arrMapC)"/>
+      <line x1="308" y1="207" x2="330" y2="207" stroke="#4fc3c0" stroke-width="2" marker-end="url(#arrMapC)"/>
+      <line x1="464" y1="207" x2="486" y2="207" stroke="#4fc3c0" stroke-width="2" marker-end="url(#arrMapC)"/>
+      <line x1="620" y1="207" x2="642" y2="207" stroke="#4fc3c0" stroke-width="2" marker-end="url(#arrMapC)"/>
+
+      <rect x="330" y="256" width="120" height="34" rx="17" fill="#20242c" stroke="#ecebe4" stroke-opacity="0.5"/>
+      <text x="390" y="278" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" font-weight="600" fill="#ecebe4">Finalna klatka</text>
+      <line x1="710" y1="230" x2="710" y2="273" stroke="#4fc3c0" stroke-width="2"/>
+      <line x1="710" y1="273" x2="452" y2="273" stroke="#4fc3c0" stroke-width="2" marker-end="url(#arrMapC)"/>
+    </svg>
+    <div class="diagram-caption">Dwa potoki, jeden punkt spotkania: gotowy asset wchodzi w potok shotów najpóźniej na etapie animacji.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Kto od kogo zależy</div>
+    <h2>Zmiana, która płynie w dół rzeki</h2>
+    <p>Ta mapa ma jedną ważną konsekwencję, do której książka będzie wracać wielokrotnie: strzałki na diagramie to nie tylko kolejność pracy, to kierunek, w którym płyną zmiany. Kiedy dział riggingu poprawia szkielet postaci już po tym, jak animacja zdążyła nakręcić na nim pięćdziesiąt shotów, ta poprawka — jeśli w ogóle ma trafić do animacji — musi popłynąć w dół tej samej strzałki, do każdego z tych pięćdziesięciu miejsc, w których asset jest używany. Im dalej w prawo na mapie już ktoś pracuje, tym drożej kosztuje zmiana, która wydarza się w lewo. To właśnie dlatego pipeline tak bardzo dba o wersjonowanie i publikowanie (Rozdziały 5–7) — to mechanizm, który sprawia, że taka zmiana jest w ogóle możliwa do prześledzenia, zamiast zgubić się po drodze.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Modeling</dt>
+      <dd>Budowa geometrii assetu — kształtu bez materiałów i bez możliwości animowania.</dd>
+      <dt>Rigging</dt>
+      <dd>Dobudowanie szkieletu i kontrolerów, które pozwalają geometrię animować.</dd>
+      <dt>Surfacing / lookdev</dt>
+      <dd>Teksturowanie i budowa shaderów nadających assetowi finalny materiał wizualny.</dd>
+      <dt>Layout</dt>
+      <dd>Zgrubne ustawienie kamery i assetów w scenie shotu, bez dopracowanego ruchu.</dd>
+      <dt>Lighting</dt>
+      <dd>Ustawienie świateł i uruchomienie renderu shotu.</dd>
+      <dt>Compositing</dt>
+      <dd>Złożenie warstw z renderu w finalny, gotowy do emisji obraz.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Mamy już mapę działów. Część II książki schodzi na poziom tego, co faktycznie leży na dysku — zaczynając od struktury katalogów i konwencji nazewnictwa, które sprawiają, że ścieżka pliku sama w sobie mówi, czym jest i skąd pochodzi.</p>
   </div>
 
 <div class="site-nav chapter-nav">

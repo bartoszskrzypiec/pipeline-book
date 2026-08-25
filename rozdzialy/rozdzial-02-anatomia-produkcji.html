@@ -12,16 +12,110 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 02/22</span><span>CZĘŚĆ · I</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>SHOW · DEMO</span><span>SEQ · 010</span><span>SHOT · 0100</span><span>TASK · LIGHTING</span>
   </div>
 
   <div class="eyebrow">Rozdział 2 / Fundamenty</div>
   <h1>Anatomia produkcji: show, sequence, shot, task, asset</h1>
   <p class="subtitle">Słownik, bez którego żadne zdanie o pipeline nie ma sensu — jak film dzieli się na jednostki pracy, które da się przydzielić, śledzić i wersjonować.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Produkcja dzieli się na oś czasu filmu (show → sequence → shot) oraz, równolegle, na assety — rzeczy używane wielokrotnie w wielu shotach naraz.</li>
+      <li>Task to najmniejsza jednostka pracy, którą da się przypisać jednej osobie i śledzić w systemie produkcyjnym — to właśnie tu pipeline „widzi" postęp.</li>
+      <li>Ta sama hierarchia, z drobnymi różnicami w nazewnictwie, powtarza się w każdym studiu i w każdym systemie śledzenia produkcji, który poznasz w Rozdziale 8.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Poprzedni rozdział pokazał, co się psuje, kiedy zabraknie wspólnego systemu. Zanim zaczniemy naprawiać którykolwiek z tych problemów, potrzebujemy słownika — bo słowa „shot", „sequence" czy „asset" pojawiają się w tej książce (i w każdej rozmowie na produkcji) bez wyjaśnienia, jakby ich znaczenie było oczywiste. Dla kogoś spoza branży nie jest. Ten rozdział rozkłada film na jednostki, którymi pipeline faktycznie operuje — nie na poziomie artystycznym, tylko organizacyjnym.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Oś czasu filmu</div>
+    <h2>Show, sequence, shot</h2>
+    <p><span class="term-amber">Show</span> to cała produkcja — jeden film, jeden sezon serialu, jedna kampania reklamowa. To najwyższy poziom, pod którym w strukturze studia siedzi absolutnie wszystko: każdy plik, każdy asset, każdy dzień pracy każdego artysty. W realnym studiu show ma zwykle krótki, wewnętrzny kod — nie tytuł marketingowy, tylko coś w rodzaju <code>DEMO</code> czy <code>AVR2</code>, który pojawia się potem w każdej ścieżce pliku i każdym zadaniu w systemie śledzenia.</p>
+    <p>Show dzieli się na <span class="term-cyan">sequence</span> (sekwencje) — fragmenty filmu odpowiadające mniej więcej scenom w scenariuszu: „pościg samochodowy", „scena w laboratorium", „finałowa bitwa". Numeruje się je zwykle liczbami z odstępem, np. <code>010</code>, <code>020</code>, <code>030</code> — nie <code>001</code>, <code>002</code>, <code>003</code> — żeby dało się później wstawić sekwencję <code>015</code> między dwie istniejące, gdy montaż się zmieni, bez przenumerowywania całej reszty.</p>
+    <p>Każda sekwencja dzieli się dalej na <span class="term-violet">shot</span> (ujęcie) — nieprzerwany fragment filmu widziany z jednej kamery, od cięcia do cięcia. To jest atomowa jednostka tego, co widz zobaczy na ekranie, i w praktyce pipeline'u — atomowa jednostka pracy większości działów produkcyjnych. Shot 0100 w sekwencji 010 dostaje zwykle identyfikator w rodzaju <code>seq010_shot0100</code>, znowu z odstępami w numeracji z tego samego powodu co sekwencje.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dwa światy produkcji</div>
+    <h2>Shoty kontra assety</h2>
+    <p>To jest najważniejszy podział w tym rozdziale, więc warto go zapamiętać dosłownie: produkcja składa się z dwóch równoległych światów, które łączą się dopiero na etapie renderu.</p>
+    <p><strong>Shoty</strong> istnieją na osi czasu filmu — każdy pojawia się dokładnie raz, w dokładnie jednym miejscu montażu. <strong>Assety</strong> — postacie, rekwizyty, pojazdy, całe środowiska — istnieją poza czasem filmu. Jeden asset, na przykład <code>hero_char</code>, powstaje raz, ale pojawia się potem w dziesiątkach albo setkach różnych shotów, w różnych sekwencjach, czasem w różnych aktach filmu. Kiedy modelarka poprawia geometrię buta tej postaci, ta poprawka musi dotrzeć do każdego z tych shotów — nie da się jej „wkleić" osobno do każdego ujęcia z osobna, bo przy setkach shotów to fizycznie niewykonalne.</p>
+
+    <div class="diagram-frame">
+      <div class="diagram-hud"><span>Asset.usage</span><span>Jeden asset, wiele shotów</span></div>
+      <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrAsset" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#9c82d8"/>
+          </marker>
+        </defs>
+
+        <rect x="300" y="24" width="160" height="56" rx="8" fill="#20242c" stroke="#9c82d8" stroke-width="1.5"/>
+        <text x="380" y="48" text-anchor="middle" font-family="IBM Plex Sans" font-size="13" fill="#ecebe4" font-weight="600">hero_char</text>
+        <text x="380" y="66" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#9c82d8">ASSET</text>
+
+        <line x1="330" y1="80" x2="130" y2="190" stroke="#9c82d8" stroke-width="1.5" marker-end="url(#arrAsset)"/>
+        <line x1="380" y1="80" x2="380" y2="190" stroke="#9c82d8" stroke-width="1.5" marker-end="url(#arrAsset)"/>
+        <line x1="430" y1="80" x2="630" y2="190" stroke="#9c82d8" stroke-width="1.5" marker-end="url(#arrAsset)"/>
+
+        <g font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+          <rect x="40" y="192" width="180" height="50" rx="8" fill="#20242c" stroke="#6e93be" stroke-opacity="0.6"/>
+          <text x="130" y="213" text-anchor="middle">seq010 / shot0100</text>
+          <text x="130" y="230" text-anchor="middle" fill="#8b909b">plan ogólny</text>
+
+          <rect x="290" y="192" width="180" height="50" rx="8" fill="#20242c" stroke="#6e93be" stroke-opacity="0.6"/>
+          <text x="380" y="213" text-anchor="middle">seq010 / shot0400</text>
+          <text x="380" y="230" text-anchor="middle" fill="#8b909b">zbliżenie</text>
+
+          <rect x="540" y="192" width="180" height="50" rx="8" fill="#20242c" stroke="#6e93be" stroke-opacity="0.6"/>
+          <text x="630" y="213" text-anchor="middle">seq030 / shot0120</text>
+          <text x="630" y="230" text-anchor="middle" fill="#8b909b">inna sekwencja</text>
+        </g>
+
+        <text x="380" y="280" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#8b909b">jedna poprawka geometrii dociera do wszystkich trzech naraz — o ile shoty referują asset, nie jego kopię</text>
+      </svg>
+    </div>
+
+    <p>To właśnie ta zasada — shot <em>referuje</em> asset, zamiast go kopiować — jest jednym z głównych powodów, dla których w ogóle potrzeba systemów takich jak Alembic (Rozdział 10) czy USD (Rozdział 11). Zapamiętaj ten podział; wróci w niemal każdym kolejnym rozdziale tej książki.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Zadania i przydział pracy</div>
+    <h2>Task — jednostka, którą realnie się przydziela</h2>
+    <p>Ani shot, ani asset nie jest jeszcze jednostką pracy — to kontenery, do których praca trafia. Faktyczną pracą zarządza się na poziomie <span class="term-amber">tasku</span> (zadania): konkretnego działania, przypisanego do konkretnej osoby, w konkretnym dziale, z konkretnym statusem. Shot 0100 ma osobny task na layout, osobny na animację, osobny na fx, osobny na lighting i osobny na comp — każdy z innym właścicielem, innym terminem i innym statusem w systemie śledzenia produkcji. Podobnie asset <code>hero_char</code> ma osobny task na modeling, osobny na rigging i osobny na surfacing.</p>
+    <p>Task to poziom, na którym pipeline w ogóle „widzi" postęp produkcji. Kiedy w Rozdziale 8 poznasz Shotgun/ShotGrid czy ftrack, to właśnie tasky będą tam widoczne jako karty na tablicy kanban, z polami takimi jak <code>status</code> (not started / in progress / pending review / approved), <code>assignee</code> (kto to robi) i <code>due date</code>. Kiedy artysta „publikuje" swoją pracę (Rozdział 7), publikacja jest zawsze powiązana z konkretnym taskiem — dzięki temu system wie, czyją pracę właśnie zobaczył, na jakim etapie shotu czy assetu, i może zaktualizować status automatycznie.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: W praktyce</div>
+    <h2>Jak to się składa razem</h2>
+    <p>Weźmy realny przykład i przejedźmy przez całą hierarchię: lighting artysta pracuje nad shotem <code>0100</code> w sekwencji <code>010</code>, w produkcji o kodzie <code>DEMO</code>. Jego zadanie w systemie śledzenia to task <code>lighting</code>, przypisany do niego, na shot <code>DEMO_seq010_shot0100</code>. W tym samym czasie riger pracuje nad taskiem <code>rigging</code> na assecie <code>hero_char</code> — zupełnie inna gałąź hierarchii, zupełnie inny cykl pracy, ale w tym samym showie. Te dwie ścieżki — shot i asset — spotykają się dopiero wtedy, gdy lighting artysta wczyta opublikowaną wersję riga do swojej sceny. Dokładnie to, jak wygląda ta ścieżka jako struktura katalogów na dysku, zobaczysz w Rozdziale 4.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Show</dt>
+      <dd>Cała produkcja — jeden film, sezon serialu czy kampania — najwyższy poziom hierarchii.</dd>
+      <dt>Sequence (sekwencja)</dt>
+      <dd>Fragment filmu odpowiadający mniej więcej scenie scenariusza, złożony z wielu shotów.</dd>
+      <dt>Shot (ujęcie)</dt>
+      <dd>Nieprzerwany fragment filmu widziany z jednej kamery — atomowa jednostka montażu.</dd>
+      <dt>Asset</dt>
+      <dd>Wielokrotnego użytku element produkcji (postać, rekwizyt, środowisko) referowany przez wiele shotów.</dd>
+      <dt>Task (zadanie)</dt>
+      <dd>Najmniejsza jednostka pracy przypisana jednej osobie, śledzona w systemie produkcyjnym.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Znamy już jednostki, którymi operuje pipeline. Następny rozdział rozciąga je w czasie i pokazuje pełną mapę: przez które działy — od konceptu po finalną klatkę — przechodzi shot i asset, zanim trafią na ekran.</p>
   </div>
 
 <div class="site-nav chapter-nav">

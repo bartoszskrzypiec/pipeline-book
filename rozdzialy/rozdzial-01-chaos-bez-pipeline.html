@@ -12,16 +12,158 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 01/22</span><span>CZĘŚĆ · I</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>SHOW · DEMO</span><span>ASSET · hero_char</span><span>WERSJI NA DYSKU · 14</span><span>SOURCE OF TRUTH · brak</span>
   </div>
 
   <div class="eyebrow">Rozdział 1 / Fundamenty</div>
   <h1>Chaos bez pipeline'u</h1>
   <p class="subtitle">Zanim spojrzymy na jakiekolwiek narzędzie, zobaczmy, co dzieje się w produkcji bez pipeline'u — i dlaczego ten sam problem rozwiązano w każdym dużym studiu tak samo.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Bez wspólnego systemu każdy artysta sam wymyśla, jak nazwać i gdzie zapisać plik — a przy dziesiątkach osób i tysiącach shotów to gwarantowana katastrofa.</li>
+      <li>Pipeline to nie jedno narzędzie, tylko zestaw konwencji, baza śledząca status pracy, mechanizm publikowania wersji i automatyzacje, które razem zamieniają chaos w powtarzalny proces.</li>
+      <li>Każde duże studio — Weta, ILM, Framestore, Pixar, DNEG — zbudowało własną wersję dokładnie tego samego mechanizmu, bo wymusza to skala produkcji, niezależnie od tego, jakiego oprogramowania używasz.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Ta książka jest o pipeline — słowie, które w studiach VFX i animacji słyszysz codziennie, a które rzadko ktoś Ci precyzyjnie tłumaczy. Zanim zdefiniujemy je porządnie, zobaczmy, jak wygląda produkcja, w której go zabrakło. To najlepszy punkt startowy: każdy problem, który pipeline rozwiązuje, najpierw trzeba poczuć jako realny ból, a nie jako abstrakcyjną definicję.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Dzień z życia</div>
+    <h2>Scena, którą każdy techniczny artysta widział</h2>
+    <p>Modelarka kończy postać główną i zapisuje plik jako <code>hero_char.mb</code>. Nazajutrz wprowadza poprawki od supervisora i zapisuje kopię jako <code>hero_char_v2.mb</code> — na wszelki wypadek, gdyby ktoś potrzebował starej wersji. Dzień później okazuje się, że poprawki jednak wymagały korekty, więc powstaje <code>hero_char_v2_fix.mb</code>, a po kolejnej naradzie — <code>hero_char_v2_fix_FINAL.mb</code>. Żaden z tych plików nie mówi wprost, czym różni się od poprzedniego. Nazwa to jedyna dokumentacja, jaka istnieje.</p>
+    <p>Riger, który ma podpiąć szkielet pod tę postać, otwiera folder współdzielonego dysku i widzi cztery pliki. Wybiera ten z „FINAL" w nazwie — rozsądne założenie, tyle że supervisor jeszcze tego dnia rano cofnął jedną z poprawek, a nowego zapisu nikt nie zdążył oznaczyć. Riger spędza dzień, podpinając kontrolery pod geometrię, która za chwilę i tak zostanie zastąpiona. W tym samym czasie artysta teksturujący podmienia plik tekstury skóry bezpośrednio na dysku sieciowym, pod tą samą nazwą co poprzednio — bo „to tylko drobna korekta koloru". Wieczorem lighting artist, który dzień wcześniej zaakceptował wygląd oświetlenia, odpala ten sam render i widzi zupełnie inny odcień skóry. Nie wie, czy to błąd w jego ustawieniach, czy ktoś zmienił coś, o czym nie został poinformowany. Traci godzinę na szukanie przyczyny, zanim w ogóle dotrze do tego, że problem nie leży po jego stronie.</p>
+    <p>Żadna z tych osób nie popełniła błędu w sensie, w jakim zwykle o błędach myślimy. Każda zrobiła dokładnie to, co wydawało się rozsądne w danym momencie. Problem nie leży w ludziach — leży w tym, że system, w którym pracują, nie daje jednoznacznej odpowiedzi na pytanie „która wersja tego pliku jest tą właściwą, i skąd mam to wiedzieć, nie pytając nikogo osobiście?".</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Diagnoza</div>
+    <h2>Cztery pytania, na które chaos nie ma odpowiedzi</h2>
+    <p>Historia powyżej zdarza się w tysiącach wariantów, ale zawsze rozbija się o te same cztery pytania. Pipeline, w najprostszym ujęciu, to system zbudowany po to, żeby na każde z nich zawsze istniała jedna, sprawdzalna odpowiedź.</p>
+    <ul class="compact">
+      <li><span class="term-amber">Która wersja jest aktualna?</span> Bez jednego, wspólnego miejsca prawdy każdy artysta polega na nazwie pliku albo na tym, kogo ostatnio zapytał na Slacku.</li>
+      <li><span class="term-cyan">Kto z tego korzysta, jeśli to zmienię?</span> Podmiana tekstury czy geometrii nie informuje nikogo, kto już zdążył tę wersję wykorzystać w swojej pracy.</li>
+      <li><span class="term-violet">Jak to trafia do kolejnego działu?</span> Bez ustalonego protokołu przekazania każdy dział wymyśla własny sposób — folder, mail, komunikator — i żaden nie gwarantuje, że odbiorca dostanie to, co nadawca faktycznie chciał przekazać.</li>
+      <li><span class="term-amber">Kto i kiedy to zmienił?</span> Bez historii zmian jedyną metodą diagnozowania problemu jest odpytywanie ludzi po kolei, aż ktoś przyzna się do modyfikacji.</li>
+    </ul>
+    <p>Zauważ, że żadne z tych pytań nie dotyczy tego, jak dobry jest model, rig czy tekstura. To pytania czysto organizacyjne — i to jest dokładnie powód, dla którego ich rozwiązanie nazywa się „pipeline", a nie „lepsze oprogramowanie do modelowania". Nawet najlepsze narzędzie DCC nie odpowie na pytanie „czy to jest aktualna wersja", bo to pytanie wykracza poza jeden plik i jedną aplikację.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Definicja</div>
+    <h2>Czym właściwie jest pipeline</h2>
+    <p><span class="term-amber">Pipeline</span> to nie pojedynczy program ani jedna baza danych — to zestaw wzajemnie powiązanych elementów, które razem zamieniają pracę osobnych artystów w skoordynowaną produkcję. W praktyce składa się zawsze z tych samych składników, które poznasz szczegółowo w kolejnych rozdziałach:</p>
+    <ul class="compact">
+      <li><strong>Konwencji nazewnictwa i struktury katalogów</strong> — żeby nazwa i lokalizacja pliku same w sobie niosły informację, a nie zgadywanie (Rozdział 4).</li>
+      <li><strong>Mechanizmu publikowania</strong> — jasnej granicy między plikiem roboczym, w którym ktoś jeszcze eksperymentuje, a wersją zatwierdzoną, z której korzystają inni (Rozdział 7).</li>
+      <li><strong>Systemu śledzenia produkcji</strong> — miejsca, w którym status każdego zadania jest widoczny dla całego zespołu, nie tylko dla jego autora (Rozdział 8).</li>
+      <li><strong>Kontroli wersji</strong> — zarówno danych produkcyjnych, jak i kodu samych narzędzi pipeline'u (Rozdziały 5, 6 i 9).</li>
+      <li><strong>Customowych narzędzi i automatyzacji</strong> — które sprawiają, że powyższe zasady są łatwiejsze do przestrzegania niż do złamania (Rozdziały 14–18).</li>
+    </ul>
+
+    <div class="diagram-frame">
+      <div class="diagram-hud"><span>Version.trace</span><span>Sama zmiana, dwa systemy</span></div>
+      <svg viewBox="0 0 760 430" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrChaos" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6e93be"/>
+          </marker>
+          <marker id="arrFlow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+          </marker>
+        </defs>
+
+        <text x="190" y="34" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" letter-spacing="1.5" fill="#6e93be">BEZ PIPELINE'U</text>
+        <text x="570" y="34" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" letter-spacing="1.5" fill="#e8a33d">Z PIPELINE'EM</text>
+
+        <g font-family="IBM Plex Sans" font-size="12.5" fill="#ecebe4">
+          <rect x="40" y="56" width="300" height="50" rx="8" fill="#20242c" stroke="#6e93be" stroke-opacity="0.55"/>
+          <text x="190" y="76" text-anchor="middle">Artysta zapisuje plik</text>
+          <text x="190" y="92" text-anchor="middle" fill="#8b909b">nazwa wg własnego pomysłu</text>
+
+          <rect x="40" y="130" width="300" height="50" rx="8" fill="#20242c" stroke="#6e93be" stroke-opacity="0.55"/>
+          <text x="190" y="150" text-anchor="middle">Wysyła go dalej</text>
+          <text x="190" y="166" text-anchor="middle" fill="#8b909b">mail / Slack / dysk sieciowy</text>
+
+          <rect x="40" y="204" width="300" height="50" rx="8" fill="#20242c" stroke="#6e93be" stroke-opacity="0.55"/>
+          <text x="190" y="224" text-anchor="middle">Odbiorca zgaduje</text>
+          <text x="190" y="240" text-anchor="middle" fill="#8b909b">czy to na pewno ostatnia wersja?</text>
+
+          <rect x="40" y="278" width="300" height="50" rx="8" fill="#20242c" stroke="#6e93be" stroke-opacity="0.55"/>
+          <text x="190" y="298" text-anchor="middle">Ktoś nadpisuje cudzą pracę</text>
+          <text x="190" y="314" text-anchor="middle" fill="#8b909b">bo nazwa pliku się powtórzyła</text>
+
+          <rect x="40" y="352" width="300" height="46" rx="8" fill="#20242c" stroke="#6e93be"/>
+          <text x="190" y="380" text-anchor="middle" font-weight="600">Błąd trafia do finalnego renderu</text>
+        </g>
+
+        <line x1="190" y1="106" x2="190" y2="128" stroke="#6e93be" stroke-width="2" marker-end="url(#arrChaos)"/>
+        <line x1="190" y1="180" x2="190" y2="202" stroke="#6e93be" stroke-width="2" marker-end="url(#arrChaos)"/>
+        <line x1="190" y1="254" x2="190" y2="276" stroke="#6e93be" stroke-width="2" marker-end="url(#arrChaos)"/>
+        <line x1="190" y1="328" x2="190" y2="350" stroke="#6e93be" stroke-width="2" marker-end="url(#arrChaos)"/>
+
+        <g font-family="IBM Plex Sans" font-size="12.5" fill="#ecebe4">
+          <rect x="420" y="56" width="300" height="50" rx="8" fill="#20242c" stroke="#e8a33d" stroke-opacity="0.7"/>
+          <text x="570" y="76" text-anchor="middle">Artysta publikuje wersję</text>
+          <text x="570" y="92" text-anchor="middle" fill="#8b909b">jednym poleceniem w narzędziu</text>
+
+          <rect x="420" y="130" width="300" height="50" rx="8" fill="#20242c" stroke="#e8a33d" stroke-opacity="0.7"/>
+          <text x="570" y="150" text-anchor="middle">System nadaje numer i miejsce</text>
+          <text x="570" y="166" text-anchor="middle" fill="#8b909b">wg jednej, sztywnej konwencji</text>
+
+          <rect x="420" y="204" width="300" height="50" rx="8" fill="#20242c" stroke="#e8a33d" stroke-opacity="0.7"/>
+          <text x="570" y="224" text-anchor="middle">Status widać w bazie śledzenia</text>
+          <text x="570" y="240" text-anchor="middle" fill="#8b909b">ten sam widok dla całego zespołu</text>
+
+          <rect x="420" y="278" width="300" height="50" rx="8" fill="#20242c" stroke="#e8a33d" stroke-opacity="0.7"/>
+          <text x="570" y="298" text-anchor="middle">Kolejny dział pobiera publish</text>
+          <text x="570" y="314" text-anchor="middle" fill="#8b909b">nigdy plik roboczy innej osoby</text>
+
+          <rect x="420" y="352" width="300" height="46" rx="8" fill="#20242c" stroke="#e8a33d"/>
+          <text x="570" y="380" text-anchor="middle" font-weight="600">Błąd wykryty, zanim dotarł do renderu</text>
+        </g>
+
+        <line x1="570" y1="106" x2="570" y2="128" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrFlow)"/>
+        <line x1="570" y1="180" x2="570" y2="202" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrFlow)"/>
+        <line x1="570" y1="254" x2="570" y2="276" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrFlow)"/>
+        <line x1="570" y1="328" x2="570" y2="350" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrFlow)"/>
+      </svg>
+      <div class="diagram-caption">Ta sama zmiana pliku, przepuszczona przez dwa różne systemy — różnica nie jest w talencie artystów, tylko w tym, co dzieje się między nimi.</div>
+    </div>
+
+    <p>Warto zapamiętać: pipeline nie eliminuje pracy artystów ani decyzji kreatywnych. Eliminuje niejednoznaczność w tym, co dzieje się <em>między</em> artystami — w momencie, w którym praca jednej osoby staje się materiałem wejściowym dla drugiej.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Konwergencja</div>
+    <h2>Dlaczego każde duże studio wynalazło to samo</h2>
+    <p>To, co opisaliśmy powyżej, nie jest teoretyczną konstrukcją — to problem, z którym zmierzyło się dosłownie każde studio, które kiedykolwiek wyprodukowało film z użyciem komputerów. ILM budowało własne narzędzia do zarządzania plikami już w latach 90., zanim ktokolwiek używał słowa „pipeline" w dzisiejszym znaczeniu — bo skala <em>Jurassic Park</em> i kolejnych produkcji fizycznie wymuszała jakiś system, a żadnego gotowego nie było na rynku. Pixar poszedł krok dalej i to, co zbudował wewnętrznie dla własnej produkcji (dziś znane jako USD, Rozdział 11), oddał całej branży jako otwarty standard. Weta Digital, Framestore, MPC i DNEG — każde z tych studiów ma własny, unikalny zestaw narzędzi, ale rozwiązuje nimi dokładnie te same cztery pytania z poprzedniej sekcji. Poznasz historie kilku z nich bliżej w dodatkach O–S, w serii „Studia w praktyce".</p>
+    <p>To nie jest zbieg okoliczności. Skala produkcji — setki artystów, tysiące shotów, dziesiątki tysięcy plików — sprawia, że problem organizacyjny przestaje być kwestią dobrej woli czy dyscypliny zespołu i staje się czystą matematyką: liczba możliwych nieporozumień rośnie szybciej niż liczba osób w zespole. Pipeline to odpowiedź na tę matematykę, nie na braki charakteru poszczególnych artystów. Reszta tej książki to właśnie to — mechanizm po mechanizmie, dokładnie to, z czego taka odpowiedź się składa.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Pipeline</dt>
+      <dd>Zestaw konwencji, narzędzi i systemów łączący pracę osobnych działów w jedną, spójną produkcję.</dd>
+      <dt>Source of truth (źródło prawdy)</dt>
+      <dd>Jedno, jednoznacznie wskazane miejsce, które określa, jaka wersja czegoś jest aktualna.</dd>
+      <dt>Publish (publikacja)</dt>
+      <dd>Formalny akt udostępnienia wersji jako gotowej do użycia przez innych — więcej w Rozdziale 7.</dd>
+      <dt>Plik roboczy</dt>
+      <dd>Wersja, w której artysta jeszcze pracuje; nieprzeznaczona do bezpośredniego użycia przez inne działy.</dd>
+      <dt>Zależność (dependency)</dt>
+      <dd>Relacja, w której jeden element produkcji (np. rig) korzysta z innego (np. modelu) i musi wiedzieć, kiedy ten się zmienia.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Zanim zaczniemy naprawiać którykolwiek z czterech problemów z tego rozdziału, potrzebujemy wspólnego słownika. Następny rozdział rozkłada produkcję na jednostki, którymi pipeline faktycznie operuje: show, sequence, shot, task i asset — pojęcia, które będą się przewijać przez resztę książki.</p>
   </div>
 
 <div class="site-nav chapter-nav">
