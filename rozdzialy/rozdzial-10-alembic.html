@@ -12,16 +12,97 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 10/22</span><span>CZĘŚĆ · IV</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>CACHE · hero_char.abc</span><span>KLATKI · 1-120</span><span>ŹRÓDŁO · nieistotne</span>
   </div>
 
   <div class="eyebrow">Rozdział 10 / Wymiana danych</div>
   <h1>Alembic: cache geometrii między aplikacjami</h1>
   <p class="subtitle">Animacja policzona w jednym programie musi trafić bez zmian do drugiego — plik, który zamraża tylko kształt, nie recepturę na jego policzenie.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Zamiast wysyłać do innych programów cały rig i historię animacji, które rozumie tylko Maya, Alembic zapisuje już policzony wynik — pozycje wierzchołków w kolejnych klatkach — w formacie, który odczyta dowolna aplikacja.</li>
+      <li>To cache wyłącznie do odczytu: nie edytuje się Alembica bezpośrednio, tylko generuje go na nowo ze źródła, gdy coś się zmienia wyżej w łańcuchu.</li>
+      <li>Dzięki temu FX, lighting i comp zawsze widzą dokładnie tę samą, zamrożoną animację — bez potrzeby posiadania Mayi ani samego riga na swojej maszynie.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 3 pokazał mapę działów: layout, animacja, fx, lighting, comp — każdy w innym programie DCC. Animator pracuje w Mayi na rigu z kontrolerami. Artysta FX potrzebuje tej samej, gotowej animacji w Houdinim, żeby symulować na niej ubranie i włosy. Problem: Houdini nie rozumie riga Mayi — nie zna jej węzłów, jej historii konstrukcyjnej, jej systemu deformerów. Gdyby jedynym sposobem przekazania animacji było przesłanie całej sceny Mayi, każdy odbiorca musiałby mieć Mayę, ten sam rig i identyczne wersje wszystkich wtyczek. To rozwiązanie kruche i wolne. Alembic istnieje po to, żeby tego uniknąć.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Przepis kontra wynik</div>
+    <h2>Nie wysyłaj przepisu, wyślij ciasto</h2>
+    <p>Kluczowe rozróżnienie brzmi: <span class="term-amber">przepis</span> kontra <span class="term-cyan">wynik</span>. Rig w Mayi to przepis — zestaw kontrolerów, deformerów i zależności, które <em>obliczają</em> pozycję każdego wierzchołka w danej klatce, ale same w sobie nie są tą pozycją. Alembic zapisuje wynik tego obliczenia: dla każdej klatki, dla każdego wierzchołka, dokładną pozycję w przestrzeni — bez informacji o tym, jak ta pozycja powstała. To proces nazywany <span class="term-violet">bakingiem</span> (zapiekaniem). Odbiorca takiego pliku nie musi rozumieć riga, bo rig już wykonał swoją pracę, zanim plik powstał — zostaje tylko czysta geometria, zmieniająca kształt klatka po klatce.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Co faktycznie jest w środku</div>
+    <h2>Hierarchia obiektów, próbkowana w czasie</h2>
+    <p>Plik Alembic (rozszerzenie <code>.abc</code>) przechowuje hierarchię obiektów bardzo podobną do tej, którą widzisz w outlinerze DCC — grupy, siatki (mesh), krzywe, chmury punktów, kamery — gdzie każdy obiekt ma zestaw atrybutów <span class="term-amber">próbkowanych</span> (sampled) w kolejnych klatkach: pozycję, orientację, kształt geometrii. Format jest zoptymalizowany pod szybki, sekwencyjny odczyt — dokładnie to, czego potrzebuje program odtwarzający animację klatka po klatce — kosztem tego, że nie da się go sensownie edytować w miejscu. Chcesz zmienić coś w animacji zapisanej w Alembicu? Wracasz do źródła (riga w Mayi), zmieniasz tam, i zapiekasz nowy plik.</p>
+
+    <div class="diagram-frame">
+      <div class="diagram-hud"><span>Alembic.bake</span><span>Jedno źródło, wiele odbiorców</span></div>
+      <svg viewBox="0 0 780 240" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrBake" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+          </marker>
+        </defs>
+        <g font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+          <rect x="20" y="86" width="200" height="60" rx="8" fill="#20242c" stroke="#6e93be"/>
+          <text x="120" y="110" text-anchor="middle">Rig + krzywe animacji</text>
+          <text x="120" y="128" text-anchor="middle" fill="#8b909b">rozumie tylko Maya</text>
+        </g>
+        <line x1="220" y1="116" x2="290" y2="116" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrBake)"/>
+        <text x="255" y="102" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#e8a33d">bake</text>
+
+        <rect x="292" y="86" width="200" height="60" rx="8" fill="#20242c" stroke="#e8a33d" stroke-width="1.5"/>
+        <text x="392" y="110" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">hero_char.abc</text>
+        <text x="392" y="128" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#8b909b">xyz per wierzchołek, per klatka</text>
+
+        <line x1="492" y1="106" x2="560" y2="46" stroke="#4fc3c0" stroke-width="1.5" marker-end="url(#arrBake)"/>
+        <line x1="492" y1="116" x2="560" y2="116" stroke="#4fc3c0" stroke-width="1.5" marker-end="url(#arrBake)"/>
+        <line x1="492" y1="126" x2="560" y2="186" stroke="#4fc3c0" stroke-width="1.5" marker-end="url(#arrBake)"/>
+
+        <g font-family="IBM Plex Sans" font-size="11.5" fill="#ecebe4">
+          <rect x="562" y="20" width="180" height="46" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.7"/>
+          <text x="652" y="47" text-anchor="middle">Houdini — FX</text>
+          <rect x="562" y="93" width="180" height="46" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.7"/>
+          <text x="652" y="120" text-anchor="middle">Katana / lighting</text>
+          <rect x="562" y="166" width="180" height="46" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.7"/>
+          <text x="652" y="193" text-anchor="middle">Nuke — comp (3D)</text>
+        </g>
+      </svg>
+      <div class="diagram-caption">Każdy odbiorca widzi identyczny wynik, bez potrzeby posiadania Mayi ani znajomości riga.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Czego Alembic nie robi</div>
+    <h2>To geometria, nie cały wygląd</h2>
+    <p>Alembic celowo robi jedną rzecz. Nie niesie informacji o materiałach ani shaderach — surfacing z Rozdziału 3 to osobna warstwa, dołączana już po stronie odbiorcy (Rozdział 11 pokaże, jak USD spina te warstwy w jedną całość). Nie jest też edytowalny w sensowny sposób — traktuj go jako zdjęcie stanu, nie jako plik roboczy. I, tak jak każdy inny wynik pracy w tej książce, cache Alembic jest publikowany dokładnie w mechanizmie z Rozdziału 7: dostaje własny numer wersji, trafia do <code>publish/</code>, i to właśnie ta opublikowana wersja — nie plik z <code>work/</code> animatora — trafia do FX, lightingu i compu.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Bake (zapiekanie)</dt>
+      <dd>Obliczenie i zapisanie finalnego wyniku (np. pozycji wierzchołków) zamiast przepisu, który go generuje.</dd>
+      <dt>Sample (próbka)</dt>
+      <dd>Wartość atrybutu zapisana dla konkretnej klatki w czasie.</dd>
+      <dt>Cache</dt>
+      <dd>Plik przechowujący gotowy wynik obliczeń, do odczytu bez ponownego ich wykonywania.</dd>
+      <dt>Alembic (.abc)</dt>
+      <dd>Otwarty format cache'u geometrii, niezależny od aplikacji, w której powstał.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Alembic rozwiązuje wymianę samej geometrii. Następny rozdział pokazuje USD — format, który idzie o krok dalej i pozwala złożyć całą scenę, z materiałami i wariantami, z tysięcy osobnych assetów naraz.</p>
   </div>
 
 <div class="site-nav chapter-nav">
