@@ -12,16 +12,42 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · E</span><span>EXT OF · Rozdział 13</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · E</span><span>KOMPRESJA · ZIP / PIZ / DWAA</span><span>EXT OF · Rozdział 13</span>
   </div>
 
-  <div class="eyebrow">Dodatek E / Głębiej</div>
+  <div class="eyebrow">Dodatek E / Głębiej: Wymiana danych</div>
   <h1>OpenEXR od środka: kompresja, multipart, deep pixels</h1>
-  <p class="subtitle">Jeden plik, który potrafi ważyć dwa megabajty albo dwa gigabajty w zależności od jednego ustawienia kompresji — i dlaczego „deep” EXR to zupełnie inny plik niż zwykły.</p>
+  <p class="subtitle">Jeden plik, który potrafi ważyć dwa megabajty albo dwa gigabajty w zależności od jednego ustawienia kompresji — i dlaczego „deep" EXR to zupełnie inny plik niż zwykły.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>OpenEXR oferuje kilka schematów kompresji — część bezstratna (ZIP, PIZ), część stratna, ale o dużo wyższym stopniu kompresji (DWAA/DWAB) — wybór zależy od tego, czy plik jest jeszcze materiałem roboczym, czy finalną dostawą.</li>
+      <li>Plik multipart mieści w sobie kilka niezależnych obrazów naraz (np. dwie kamery, kilka rozdzielczości), a program odczytujący może wziąć tylko tę część, której akurat potrzebuje.</li>
+      <li>Deep pixel trzyma wiele próbek na jeden piksel, każdą na innej głębokości — dokładnie to, czego potrzeba, żeby dym czy futro dało się poprawnie skomponować z nowym elementem bez ponownego renderu.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 13 pokazał, dlaczego jeden plik OpenEXR niesie dziesiątki kanałów zamiast płaskiego obrazka. Ten dodatek schodzi niżej — do tego, jak te dane są fizycznie zapisane na dysku, i dlaczego dwa pliki EXR o identycznej zawartości wizualnej mogą różnić się rozmiarem stukrotnie.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Kompresja — bezstratna albo bardzo mała</div>
+    <h2>ZIP, PIZ, DWAA — trzy różne kompromisy</h2>
+    <p>OpenEXR pozwala wybrać schemat kompresji osobno dla każdego pliku. <span class="term-amber">ZIP</span> i <span class="term-cyan">PIZ</span> są bezstratne — żaden piksel nie traci precyzji — co czyni je właściwym wyborem dla plików, które będą jeszcze wielokrotnie przetwarzane, np. w kompozycji. PIZ, oparty na kompresji falkowej, sprawdza się szczególnie dobrze na obrazach z naturalnym ziarnem czy szumem renderu, typowym dla materiału filmowego. <span class="term-violet">DWAA</span> i DWAB (opracowane przez DreamWorks Animation) są stratne, ale osiągają znacznie wyższy stopień kompresji przy stracie niezauważalnej gołym okiem — dobry wybór dla finalnej dostawy, gdzie plik nie będzie już dalej przetwarzany, tylko obejrzany. Wybór złego schematu w złym miejscu łańcucha — stratnego tam, gdzie ktoś jeszcze będzie grade'ował obraz — to cichy, skumulowany błąd, trudny do wyśledzenia post factum.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Multipart — kilka obrazów w jednym pliku</div>
+    <h2>Nie każdy odbiorca musi czytać wszystko</h2>
+    <p>Plik <span class="term-amber">multipart</span> EXR mieści w sobie kilka niezależnych „części" — każda ze swoją własną rozdzielczością i własnym zestawem kanałów — zamiast wymuszać, żeby wszystko dzieliło jeden wspólny układ. W praktyce pozwala to np. zapisać w jednym pliku beauty w pełnej rozdzielczości obok osobnej, mniejszej części z danymi technicznymi — identyfikatorami obiektów do maskowania w kompozycji, czy dodatkową kamerą stereo — i pozwolić programowi odczytującemu wziąć tylko tę część, której akurat potrzebuje, zamiast wczytywać cały plik do pamięci za każdym razem.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Deep pixels</div>
+    <h2>Więcej niż jedna wartość na piksel</h2>
+    <p>Zwykły plik EXR trzyma jedną wartość koloru (i głębi) na piksel — czyli zakłada, że w danym pikselu widać dokładnie jedną powierzchnię. To założenie łamie się przy dymie, włosach czy listowiu, gdzie w jednym pikselu nakłada się na siebie wiele częściowo przezroczystych warstw na różnych głębokościach. <span class="term-cyan">Deep pixel</span> rozwiązuje to, trzymając nie jedną, a wiele próbek na piksel, każdą z własną głębokością i przezroczystością. Dzięki temu kompozytor może wstawić nowy element gdzieś <em>pomiędzy</em> te warstwy — na przykład cząstkę iskier za dymem, ale przed drzewem w tle — bez ponownego renderowania sceny, bo dane o głębi każdej warstwy wciąż istnieją, zamiast zostać spłaszczone do jednej liczby przy renderze.</p>
   </div>
 
 <div class="site-nav">
