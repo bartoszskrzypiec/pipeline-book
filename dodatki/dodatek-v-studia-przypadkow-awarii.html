@@ -12,16 +12,48 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · V</span><span>EXT OF · Rozdział 21</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · V</span><span>PRZYPADKÓW · 3</span><span>EXT OF · Rozdział 21</span>
   </div>
 
-  <div class="eyebrow">Dodatek V / Głębiej</div>
+  <div class="eyebrow">Dodatek V / Głębiej: Ludzie</div>
   <h1>Studia przypadków: co się psuje, gdy pipeline zawodzi</h1>
   <p class="subtitle">Najwięcej o architekturze systemu mówią jego realne awarie — kilka anonimowych historii typu „publish nadpisał cudzą wersję” i co z nich wynika na przyszłość.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Wyścig przy nadawaniu numeru wersji, cicho milknący hook i rozjazd uprawnień między dwoma systemami to trzy różne awarie, ale każda z nich to ten sam typ błędu: założenie, które było prawdziwe podczas projektowania systemu, przestało być prawdziwe w praktyce.</li>
+      <li>Żadna z tych trzech historii nie wynika ze złej woli czy braku kompetencji — każda wynika z mechanizmu opisanego wcześniej w tej książce, działającego dokładnie tak, jak został zaprojektowany, tyle że w sytuacji, której projekt nie przewidział.</li>
+      <li>Dobry pipeline nie jest tym, który nigdy nie zawodzi — jest tym, który zawodzi w sposób widoczny i szybki do zdiagnozowania, zamiast cicho i długo.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Reszta tej książki opisywała mechanizmy w ich zamierzonym działaniu. Ten dodatek robi coś przeciwnego — pokazuje trzy anonimowe, uproszczone historie tego, co się dzieje, kiedy te same mechanizmy zawodzą w realnej produkcji, i jaki wniosek płynie z każdej z nich.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Przypadek 1</div>
+    <h2>Publish, który nadpisał cudzą wersję</h2>
+    <p>Dwóch artystów opublikowało tę samą postać w odstępie kilku sekund. Narzędzie publikujące (Rozdział 7) odczytało najwyższy istniejący numer wersji w folderze <code>publish/</code>, dodało jeden i zapisało wynik — dokładnie tak, jak zostało zaprojektowane. Problem: oboje odczytali ten sam, jeszcze nieaktualny numer, zanim którekolwiek z nich zdążyło zapisać swój wynik, więc oboje nadali swojej publikacji tę samą wersję. Druga zapisana wersja fizycznie nadpisała pierwszą na dysku. <strong>Wniosek:</strong> odczyt-i-inkrementacja numeru wersji musi być operacją atomową, wykonywaną przez jedno, centralne miejsce (serwer Perforce albo system śledzenia), nie przez każdy klient odczytujący ten sam folder osobno — dokładnie ten sam typ błędu, przed którym Rozdział 6 chroni blokadą przy edycji pojedynczego pliku, tylko przeniesiony na poziom nadawania numeru wersji.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Przypadek 2</div>
+    <h2>Hook, który nikt nie pamiętał</h2>
+    <p>Aktualizacja niepowiązanego narzędzia zmieniła nazwę jednego pola w API systemu śledzenia. Hook z Rozdziału 18, odpowiedzialny za powiadamianie działu riggingu o nowych publikacjach, odwoływał się do starej nazwy tego pola — zaczął cicho zawodzić przy każdym uruchomieniu, ale błąd trafiał do logu, którego nikt nie sprawdzał, bez żadnego alertu. Dział riggingu nie dostawał powiadomień przez ponad tydzień, zanim ktoś przypadkiem zapytał, czemu nikt nie reaguje na nowe publikacje. <strong>Wniosek:</strong> automatyzacja, która potrafi zawieść cicho, prędzej czy później zawiedzie cicho — hooki potrzebują własnego, aktywnego monitoringu błędów, nie tylko możliwości logowania ich gdzieś, gdzie nikt nie patrzy. To dokładnie ostrzeżenie z końca Rozdziału 18, tym razem jako realny, a nie hipotetyczny scenariusz.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Przypadek 3</div>
+    <h2>Rozjazd uprawnień</h2>
+    <p>Artysta zszedł z produkcji A i został formalnie usunięty z tego projektu w systemie śledzenia (Rozdział 8). Nikt jednak nie usunął jego dostępu do odpowiadającej ścieżki w Perforce (Rozdział 6) — te dwie warstwy uprawnień, opisane w Dodatku H, aktualizowane były ręcznie, przez dwie różne osoby, w dwóch osobnych krokach. Miesiąc później ten sam artysta, pracując już przy produkcji B, przez pomyłkę otworzył i zapisał plik z wciąż aktywnym dostępem do A, nadpisując zablokowaną wersję, którą zespół A uznawał za bezpieczną i zamrożoną przed dostawą. <strong>Wniosek:</strong> dwie niezależne warstwy uprawnień, które w teorii powinny być zsynchronizowane, prędzej czy później się rozjadą, jeśli synchronizacja jest ręczna — to zadanie dla automatyzacji z Rozdziału 18 (hook reagujący na usunięcie z projektu), nie dla checklisty, o której ktoś może zapomnieć.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Co łączy te trzy historie</div>
+    <h2>Nie zła wola — złamane założenie</h2>
+    <p>Żadna z tych trzech awarii nie wynikała z niekompetencji którejkolwiek z zaangażowanych osób. Każdy mechanizm, który zawiódł, działał dokładnie tak, jak go zaprojektowano — problem polegał na tym, że rzeczywistość przestała spełniać założenie, na którym ten projekt się opierał: że odczyt i zapis wersji nigdy się nie nałożą w czasie, że hook, który raz zadziałał, będzie działać zawsze, że dwa niezależne systemy uprawnień ktoś będzie pamiętał aktualizować razem. Dobry pipeline nie eliminuje takich założeń całkowicie — to niemożliwe — ale sprawia, że kiedy któreś się złamie, awaria jest głośna i szybka do zdiagnozowania, zamiast cicha i odkrywana przypadkiem tydzień później.</p>
   </div>
 
 <div class="site-nav">
