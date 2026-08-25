@@ -12,22 +12,73 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 22/22</span><span>CZĘŚĆ · VII</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>SHOW · DEMO</span><span>SHOT · seq030_shot0250</span><span>ROZDZIAŁÓW · 22</span><span>STATUS · dostarczone</span>
   </div>
 
   <div class="eyebrow">Rozdział 22 / Ludzie</div>
   <h1>Epilog: jeden shot, cały pipeline</h1>
   <p class="subtitle">Zaczęliśmy od pojedynczego pliku bez żadnej struktury. Kończymy, śledząc jeden shot przez każdy system z tej książki — od pierwszego szkicu do klatki w kinie.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="section">
+    <p>Rozdział 1 zaczął się od chaosu: pliku z „FINAL" w nazwie, nadpisanej pracy, straconego dnia. Dwadzieścia rozdziałów później masz już wszystkie elementy, które ten chaos zamieniają w przewidywalny proces. Zanim zamkniemy tę książkę, prześledźmy jeden, konkretny shot — <code>seq030_shot0250</code> — od pierwszego szkicu do klatki, którą zobaczy widz, wskazując po drodze na każdy mechanizm, który już znasz.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Cała droga, po kolei</div>
+    <h2>Od konceptu do ekranu</h2>
+    <p>Postać główna, <code>hero_char</code>, powstaje w potoku assetów z Rozdziału 3: modeling buduje geometrię i publikuje ją (Rozdział 7) przez narzędzie, które sam kontekst odczytuje automatycznie (Rozdział 15), zapisując wynik przez Perforce (Rozdział 6) w strukturze katalogów z Rozdziału 4. Rigging i surfacing robią to samo, każdy w swoim tasku, każdy pilnując configu OpenColorIO z Rozdziału 12, żeby tekstury wyglądały identycznie wszędzie, gdzie ktoś je otworzy. Cały ten postęp widać w systemie śledzenia z Rozdziału 8 — supervisor ogląda kolejne wersje na dailies i zatwierdza tę jedną, którą zobaczą inne działy.</p>
+    <p>Layout ustawia kamerę w scenie złożonej z warstw USD (Rozdział 11) — asset <code>hero_char</code> jest tylko referencją, nie kopią. Animacja ożywia rig i zapieka wynik do cache'u Alembic (Rozdział 10), który trafia do FX bez potrzeby otwierania Mayi. FX symuluje włosy i ubranie na tym cache'u, zapisując własną warstwę. Lighting składa wszystko razem i wysyła zadanie na farmę renderową (Rozdział 19) — setki klatek na setkach maszyn naraz, z których każda odczytuje dokładnie to samo środowisko (Rozdział 17) i te same dane ze współdzielonego storage'u (Rozdział 20). Wynik to nie jeden obrazek, tylko wielokanałowy OpenEXR z dziesiątkami passów (Rozdział 13).</p>
+    <p>Po drodze, bez udziału żadnego artysty, odpalają się hooki z Rozdziału 18 — playblast do przeglądu, powiadomienie do kolejnego działu. Compositing składa finalny obraz z passów, kierując się tym samym configiem koloru co wszyscy wcześniej. Cały ten łańcuch narzędzi — od publish scriptu po submitter farmy — jest kodem wersjonowanym w Gicie (Rozdział 9), utrzymywanym przez Pipeline TD (Rozdział 21), który dba, żeby żadna zmiana nie zepsuła tego, co akurat renderuje się dla innego shotu.</p>
+  </div>
+
+  <div class="diagram-frame">
+    <div class="diagram-hud"><span>Shot.trace</span><span>seq030_shot0250, pełna droga</span></div>
+    <svg viewBox="0 0 700 520" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrEpi" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+        </marker>
+      </defs>
+      <g font-family="IBM Plex Sans" font-size="12" fill="#ecebe4">
+        <rect x="150" y="10" width="280" height="40" rx="7" fill="#20242c" stroke="#9c82d8" stroke-opacity="0.8"/>
+        <text x="290" y="34" text-anchor="middle">Asset: modeling → rig → surfacing</text>
+        <rect x="150" y="70" width="280" height="40" rx="7" fill="#20242c" stroke="#9c82d8" stroke-opacity="0.8"/>
+        <text x="290" y="94" text-anchor="middle">Publish + tracking (R.6, 7, 8, 12)</text>
+        <rect x="150" y="130" width="280" height="40" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.8"/>
+        <text x="290" y="154" text-anchor="middle">Layout: USD referuje asset (R.11)</text>
+        <rect x="150" y="190" width="280" height="40" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.8"/>
+        <text x="290" y="214" text-anchor="middle">Animacja → cache Alembic (R.10)</text>
+        <rect x="150" y="250" width="280" height="40" rx="7" fill="#20242c" stroke="#4fc3c0" stroke-opacity="0.8"/>
+        <text x="290" y="274" text-anchor="middle">FX symuluje na cache'u</text>
+        <rect x="150" y="310" width="280" height="40" rx="7" fill="#20242c" stroke="#e8a33d" stroke-opacity="0.9"/>
+        <text x="290" y="334" text-anchor="middle">Lighting → farma + storage (R.17, 19, 20)</text>
+        <rect x="150" y="370" width="280" height="40" rx="7" fill="#20242c" stroke="#e8a33d" stroke-opacity="0.9"/>
+        <text x="290" y="394" text-anchor="middle">Multi-channel EXR (R.13) + hooki (R.18)</text>
+        <rect x="150" y="430" width="280" height="40" rx="7" fill="#20242c" stroke="#e8a33d" stroke-width="1.5"/>
+        <text x="290" y="454" text-anchor="middle">Compositing → finalna klatka</text>
+      </g>
+      <line x1="290" y1="50" x2="290" y2="68" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrEpi)"/>
+      <line x1="290" y1="110" x2="290" y2="128" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrEpi)"/>
+      <line x1="290" y1="170" x2="290" y2="188" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrEpi)"/>
+      <line x1="290" y1="230" x2="290" y2="248" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrEpi)"/>
+      <line x1="290" y1="290" x2="290" y2="308" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrEpi)"/>
+      <line x1="290" y1="350" x2="290" y2="368" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrEpi)"/>
+      <line x1="290" y1="410" x2="290" y2="428" stroke="#e8a33d" stroke-width="2" marker-end="url(#arrEpi)"/>
+
+      <text x="290" y="490" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#8b909b">nad całością: Git dla kodu (R.9), Pipeline TD utrzymujący to wszystko (R.21)</text>
+    </svg>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: To, co zostaje</div>
+    <h2>Pipeline jako fakt, nie jako wybór</h2>
+    <p>Żaden z mechanizmów w tej książce nie jest tam dlatego, że komuś się spodobał estetycznie. Każdy z nich to odpowiedź na konkretny, nieunikniony problem skali: kiedy artystów jest dwustu, a shotów tysiące, chaos z Rozdziału 1 nie jest ryzykiem — jest gwarancją, jeśli nic mu się nie przeciwstawi. To dlatego niemal identyczny zestaw rozwiązań powstał niezależnie w ILM, Pixarze, Weta Digital, Framestore, MPC i DNEG — różne narzędzia, różne nazwy, ten sam kształt problemu i ten sam kształt odpowiedzi. Przyjrzysz się temu bliżej w serii „Studia w praktyce" w dodatkach O–S.</p>
+    <p>Jeśli pracujesz jako artysta w studiu, które ma dobry pipeline, prawdopodobnie nigdy nie zobaczysz większości mechanizmów opisanych w tej książce z nazwy — zobaczysz tylko przycisk „Publish", który działa, i loader, który zawsze pokazuje właściwą wersję. To jest dokładnie znak, że ktoś zrobił swoją pracę dobrze.</p>
   </div>
 
 <div class="site-nav chapter-nav">
     <a class="nav-prev" href="rozdzial-21-pipeline-td.html">← Poprzedni</a>
     <a class="nav-toc" href="../index.html">Spis treści</a>
-    
 </div>
 </div>
 </body>
