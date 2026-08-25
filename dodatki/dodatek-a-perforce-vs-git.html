@@ -12,16 +12,70 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>DODATEK · A</span><span>EXT OF · Rozdział 6</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>DODATEK · A</span><span>MODEL · scentralizowany vs rozproszony</span><span>EXT OF · Rozdział 6</span>
   </div>
 
-  <div class="eyebrow">Dodatek A / Głębiej</div>
+  <div class="eyebrow">Dodatek A / Głębiej: Kontrola wersji</div>
   <h1>Perforce vs Git: dwie filozofie kontroli wersji</h1>
   <p class="subtitle">Git zakłada, że każdy może edytować ten sam plik naraz i połączyć zmiany później. Dla trzygigabajtowej sceny w Mayi to założenie po prostu nie działa.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten dodatek jeszcze nie został napisany. Tytuł, powiązanie z rozdziałem głównym i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Git jest rozproszony i buduje się wokół migawek całego drzewa plików przy każdym commicie, nie wokół różnic — te liczy dopiero na żądanie, do wyświetlenia.</li>
+      <li>Perforce jest scentralizowany i pozwala decydować per plik, czy ma być mergowalny (pliki tekstowe), czy blokowany wyłącznie (pliki binarne) — to jedna, elastyczna reguła, nie sztywny wybór między dwiema filozofiami.</li>
+      <li>Branch w Gicie jest tani i lekki, dlatego kod pipeline'u korzysta z niego swobodnie (Rozdział 9); branch w Perforce bywa cięższą operacją, dlatego P4 rozgałęzia się rzadziej i zwykle na poziomie całego showu, nie pojedynczej funkcji.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 5 pokazał, dlaczego Git nie radzi sobie z plikami binarnymi, a Rozdział 6 — jak Perforce rozwiązuje ten sam problem blokadą zamiast scalaniem. Ten dodatek zestawia oba systemy wprost, na poziomie architektury, żeby różnica przestała być tylko listą objawów, a stała się zrozumiałą konsekwencją dwóch różnych decyzji projektowych sprzed dekad.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Migawka, nie różnica</div>
+    <h2>Częsty mit o tym, jak działa Git w środku</h2>
+    <p>Rozdział 5 opisał Git jako system operujący na różnicach linii — to prawda na poziomie tego, co widzi użytkownik, ale nie na poziomie tego, co Git faktycznie zapisuje na dysku. Każdy commit to w rzeczywistości pełna <span class="term-amber">migawka</span> (snapshot) całego drzewa plików w danym momencie, nie zapisana różnica względem poprzedniego stanu. Różnicę („diff") Git liczy dopiero na żądanie, porównując dwie migawki ze sobą, żeby pokazać ją człowiekowi. To rozróżnienie ma znaczenie praktyczne: skoro każdy commit to pełne drzewo, sklonowanie repozytorium z długą historią oznacza pobranie wielu pełnych migawek — dokładnie dlatego repo z dużą liczbą dużych plików binarnych rośnie tak szybko, mimo że każda pojedyncza zmiana bywa niewielka.</p>
+    <p>Perforce działa inaczej — nie trzyma migawek całego drzewa na kliencie, tylko przechowuje historię per plik na centralnym serwerze i przesyła do workspace'u wyłącznie te wersje, o które klient poprosi (Rozdział 6). To fundamentalna różnica w podejściu do pytania „gdzie mieszka historia": u każdego, kto sklonował repo (Git), czy w jednym, centralnym miejscu, odwiedzanym na życzenie (Perforce).</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Merge to wybór, nie dogmat</div>
+    <h2>Perforce też potrafi scalać — tam, gdzie to bezpieczne</h2>
+    <p>Uproszczenie z Rozdziału 6 — „Perforce blokuje, Git scala" — jest prawdziwe jako opis domyślnej praktyki w VFX, ale nie jako opis możliwości samego narzędzia. Perforce przypisuje każdemu plikowi typ (<code>filetype</code>), który decyduje, jak jest traktowany: plik tekstowy, np. plik konfiguracyjny czy skrypt, domyślnie pozwala wielu osobom edytować się równolegle i scala zmiany automatycznie, bardzo podobnie do Gita. Dopiero jawne oznaczenie pliku jako binarnego z modyfikatorem <code>+l</code> (exclusive) włącza blokadę wyłączną opisaną w Rozdziale 6. Innymi słowy: to nie jest wybór między dwiema filozofiami skonfigurowanymi raz na cały system, tylko ustawienie per plik, dobierane świadomie do tego, czy dany format da się bezpiecznie scalić.</p>
+  </div>
+
+  <div style="display:flex;gap:20px;flex-wrap:wrap;margin:24px 0;">
+    <div style="flex:1;min-width:260px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--raster);text-transform:uppercase;margin-bottom:12px;">Git</div>
+      <ul style="margin:0;padding-left:18px;color:var(--text);">
+        <li>Rozproszony — pełna historia u każdego</li>
+        <li>Migawka całego drzewa per commit</li>
+        <li>Merge domyślny dla wszystkiego</li>
+        <li>Branch tani, zachęca do rozgałęziania</li>
+      </ul>
+    </div>
+    <div style="flex:1;min-width:260px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-bottom:12px;">Perforce</div>
+      <ul style="margin:0;padding-left:18px;color:var(--text);">
+        <li>Scentralizowany — jeden depot, częściowe kopie</li>
+        <li>Historia per plik, na serwerze</li>
+        <li>Merge albo blokada — zależnie od typu pliku</li>
+        <li>Branch cięższy, zwykle na poziomie streamu/showu</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Koszt rozgałęzienia</div>
+    <h2>Dlaczego P4 nie rozgałęzia się tak swobodnie jak Git</h2>
+    <p>W Gicie branch to tylko lekki wskaźnik na konkretny commit — utworzenie go jest praktycznie darmowe, stąd swoboda, z jaką kod pipeline'u rozgałęzia się na potrzeby pojedynczej funkcji (Rozdział 9). W Perforce odpowiednikiem są <span class="term-cyan">streamy</span> — hierarchia gałęzi z jawnie zadeklarowanymi relacjami rodzic-dziecko, częściej używana do modelowania całych linii produkcyjnych (np. „mainline" showu i jego stabilna gałąź do oddania materiału) niż do codziennych, drobnych eksperymentów pojedynczego artysty. To nie jest ograniczenie techniczne tak bardzo, jak różnica w tym, do czego historycznie każdy z tych systemów był projektowany — Git do kodu, gdzie eksperymentowanie na gałęzi jest tanie i pożądane, Perforce do danych produkcyjnych, gdzie stabilność jednej, wspólnej linii bywa ważniejsza niż łatwość rozgałęziania.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Które więc wybrać</div>
+    <h2>Odpowiedź, którą główne rozdziały już dały</h2>
+    <p>Ten dodatek nie zmienia wniosku z Rozdziałów 5, 6 i 9 — tylko pokazuje, dlaczego jest on architekturalnie uzasadniony, nie umowny. Dane produkcyjne — sceny, tekstury, cache'e — trafiają do Perforce, bo ich rozmiar i binarny charakter dobrze pasują do modelu scentralizowanego z blokadą. Kod pipeline'u trafia do Gita, bo jest tekstem, dla którego rozproszony model z tanim rozgałęzianiem i automatycznym mergem jest wprost stworzony. Oba systemy istnieją w tym samym studiu nie dlatego, że ktoś nie mógł się zdecydować — dlatego, że rozwiązują dwa różne problemy.</p>
   </div>
 
 <div class="site-nav">
