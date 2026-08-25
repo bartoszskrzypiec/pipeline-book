@@ -12,16 +12,92 @@
 <div class="page">
 
   <div class="viewport-readout">
-    <span>ROZDZIAŁ · 09/22</span><span>CZĘŚĆ · III</span><span>STATUS · W PRZYGOTOWANIU</span>
+    <span>REPO · pipeline-tools</span><span>BRANCH · feature/publish-hook</span><span>PR · #142 review</span>
   </div>
 
   <div class="eyebrow">Rozdział 9 / Kod pipeline'u</div>
   <h1>Git w pipeline: branch, merge i code review dla narzędzi</h1>
   <p class="subtitle">Ten sam Git, który nie nadaje się do pliku Maya, jest dokładnie tym, czego potrzeba do kodu narzędzi, które ten plik Maya otwierają.</p>
 
-  <div class="panel practice">
-    <div class="panel-label">Status</div>
-    <p>Ten rozdział jeszcze nie został napisany. Tytuł, miejsce w strukturze książki i zajawka powyżej są już ustalone — treść powstanie w kolejnej sesji pracy nad książką, zgodnie z filozofią „żywego projektu” przejętą z raytracing-book.</p>
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Kod pipeline'u — skrypty publikujące, wtyczki do DCC, integracje z systemem śledzenia — to zwykły tekst, więc trafia dokładnie tam, gdzie Git jest od początku najlepszy.</li>
+      <li>Nawet mały zespół pipeline'owy trzyma się branchy i code review, bo błąd w skrypcie publikującym potrafi zablokować cały dział na godziny — stawka jest wyższa niż w typowym projekcie software'owym.</li>
+      <li>Konkretna wersja kodu pipeline'u bywa „zamrożona" tagiem na czas trwania showu, żeby aktualizacja narzędzi w jednej produkcji nie wywróciła stabilności drugiej, która akurat kończy zdjęcia.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <p>Rozdział 5 poświęciliśmy na wyjaśnienie, dlaczego Git nie nadaje się do plików, z którymi pracują artyści. To nie oznacza, że Git jest w VFX niepotrzebny — wręcz przeciwnie. Każde narzędzie, o którym pisaliśmy w poprzednich rozdziałach — skrypt publikujący z Rozdziału 7, integracja z systemem śledzenia z Rozdziału 8 — samo jest napisane w kodzie, a kod to czysty tekst. Dokładnie ten przypadek, do którego Git został zaprojektowany.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Co właściwie jest kodem pipeline'u</div>
+    <h2>Nie tylko skrypty na biurku</h2>
+    <p>„Kod pipeline'u" brzmi abstrakcyjnie, ale w praktyce to konkretny, rosnący zbiór plików: skrypty publikujące i loadery z Rozdziału 7, wtyczki dodające menu i przyciski do Mayi, Houdiniego i Nuke, integracje z API systemu śledzenia z Rozdziału 8, pliki konfiguracyjne opisujące konwencje nazewnictwa z Rozdziału 4. Wszystko to żyje w repozytorium Git, dokładnie tak jak kod dowolnej innej aplikacji — z tą różnicą, że jego „użytkownikami" nie są klienci zewnętrzni, tylko artyści w tym samym budynku, którzy klikają przycisk „Publish" kilkadziesiąt razy dziennie.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Wysoka stawka małego zespołu</div>
+    <h2>Dlaczego branch i review mają sens nawet przy dwóch osobach</h2>
+    <p>Zespół pipeline'owy bywa w studiu zaskakująco mały — czasem to dwie, trzy osoby obsługujące narzędzia dla stu kilkudziesięciu artystów. Można by pomyśleć, że przy tak małej skali formalności w rodzaju branchy czy code review to zbędny ceremoniał, właściwy dużym zespołom open source'owym. Jest odwrotnie: to właśnie mała skala zespołu przy ogromnej skali „klientów" podnosi stawkę błędu. Literówka w skrypcie publikującym, wypchnięta bezpośrednio na branch, z którego korzystają wszystkie stacje robocze, potrafi zablokować cały dział lightingu w środku dnia zdjęciowego — nie ma nikogo, kto po cichu naprawi to lokalnie, jak zrobiłby to jeden zirytowany programista. Dlatego zmiany w kodzie pipeline'u niemal zawsze przechodzą przez osobny branch, a przed połączeniem z główną gałęzią — przez code review drugiej osoby, nawet jeśli ten zespół liczy tylko dwie osoby w sumie.</p>
+  </div>
+
+  <div class="diagram-frame">
+    <div class="diagram-hud"><span>Repo.history</span><span>pipeline-tools, ostatnie tygodnie</span></div>
+    <svg viewBox="0 0 780 210" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrGit" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#4fc3c0"/>
+        </marker>
+      </defs>
+      <line x1="40" y1="60" x2="740" y2="60" stroke="#6e93be" stroke-width="2"/>
+      <text x="40" y="40" font-family="IBM Plex Mono" font-size="11.5" fill="#6e93be">main (production)</text>
+
+      <circle cx="100" cy="60" r="7" fill="#20242c" stroke="#6e93be" stroke-width="2"/>
+      <circle cx="260" cy="60" r="7" fill="#20242c" stroke="#6e93be" stroke-width="2"/>
+      <circle cx="480" cy="60" r="9" fill="#20242c" stroke="#e8a33d" stroke-width="2.5"/>
+      <circle cx="690" cy="60" r="7" fill="#20242c" stroke="#6e93be" stroke-width="2"/>
+
+      <rect x="440" y="86" width="80" height="34" rx="6" fill="#20242c" stroke="#e8a33d"/>
+      <text x="480" y="107" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#e8a33d">v2.14</text>
+      <line x1="480" y1="69" x2="480" y2="84" stroke="#e8a33d" stroke-width="2"/>
+      <text x="480" y="140" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#8b909b">tag przypięty do showu w trakcie zdjęć</text>
+
+      <path d="M 260 60 C 260 150, 420 150, 420 150" fill="none" stroke="#4fc3c0" stroke-width="2"/>
+      <circle cx="420" cy="150" r="7" fill="#20242c" stroke="#4fc3c0" stroke-width="2"/>
+      <text x="340" y="172" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#4fc3c0">feature/publish-hook</text>
+      <path d="M 420 150 C 550 150, 610 60, 620 60" fill="none" stroke="#4fc3c0" stroke-width="2" marker-end="url(#arrGit)"/>
+      <rect x="560" y="10" width="150" height="30" rx="15" fill="#20242c" stroke="#4fc3c0"/>
+      <text x="635" y="30" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#4fc3c0">PR #142 — review OK</text>
+    </svg>
+    <div class="diagram-caption">Zmiana wchodzi na main dopiero po review, na produkcyjnej gałęzi trwającego showu obowiązuje wersja przypięta tagiem.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Zamrożone wersje dla produkcji w toku</div>
+    <h2>Nie każdy show chce najnowszej wersji narzędzi</h2>
+    <p>Studio pracujące równolegle nad kilkoma produkcjami staje przed problemem, którego mały projekt open source rzadko doświadcza: show A jest tydzień przed oddaniem materiału i absolutnie nie może pozwolić sobie na żadną niespodziankę w narzędziach, podczas gdy show B dopiero się rozkręca i chętnie skorzystałby z nowej funkcji, którą zespół pipeline'owy właśnie skończył. Rozwiązaniem jest <span class="term-amber">tag</span> — nazwana, zamrożona wersja kodu, do której konkretny show jest „przypięty" (Rozdział 17 pokaże mechanizm, który to fizycznie egzekwuje). Zespół pipeline'owy może więc mergować nowe funkcje na główną gałąź codziennie, nie ryzykując niczego u showu A, dopóki ten świadomie nie zaktualizuje swojego przypięcia — zwykle dopiero między produkcjami, nie w ich trakcie.</p>
+  </div>
+
+  <div class="panel glossary">
+    <div class="panel-label">Słowniczek</div>
+    <dl>
+      <dt>Branch (gałąź)</dt>
+      <dd>Odizolowana linia rozwoju kodu, pozwalająca pracować nad zmianą bez wpływu na główną gałąź.</dd>
+      <dt>Pull request / code review</dt>
+      <dd>Formalny przegląd zmiany przez inną osobę przed połączeniem jej z główną gałęzią.</dd>
+      <dt>Main / production branch</dt>
+      <dd>Gałąź odzwierciedlająca kod aktualnie używany przez artystów.</dd>
+      <dt>Tag</dt>
+      <dd>Nazwana, niezmienna wskazówka na konkretny commit — sposób na „zamrożenie" wersji kodu dla danego showu.</dd>
+    </dl>
+  </div>
+
+  <div class="next">
+    <div class="panel-label" style="color:var(--violet);">Co dalej</div>
+    <p>Część IV zmienia temat: jak dane w ogóle wędrują między różnymi programami DCC. Zaczynamy od Alembic — formatu, który zamraża geometrię w czasie tak, żeby dowolna aplikacja mogła ją odczytać bez znajomości tej, w której powstała.</p>
   </div>
 
 <div class="site-nav chapter-nav">
