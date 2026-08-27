@@ -150,6 +150,14 @@ h1{font-family:var(--display);font-weight:600;font-size:clamp(30px,5vw,50px);lin
 .answer .line{margin-bottom:6px;color:var(--text-dim);}
 .answer .line .res{color:var(--cyan);font-weight:600;}
 
+/* PASEK GORNY (sticky, na kazdej stronie) */
+.topnav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 24px;background:var(--bg-panel);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12px;letter-spacing:.04em;}
+.topnav__brand{color:var(--text);text-decoration:none;white-space:nowrap;}
+.topnav__brand span{color:var(--amber);}
+.topnav__links{display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:flex-end;}
+.topnav__links a{color:var(--text-dim);text-decoration:none;transition:color .15s;white-space:nowrap;}
+.topnav__links a:hover{color:var(--amber);}
+
 /* NAWIGACJA DOLNA (rozdziały / dodatki / pomocnik) */
 .site-nav{border-top:1px solid var(--border);margin-top:70px;padding-top:24px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:13px;}
 .site-nav a{color:var(--text-dim);text-decoration:none;transition:color .15s;}
@@ -198,6 +206,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,
 
 /* WĄSKIE EKRANY */
 @media (max-width:560px){
+  .topnav{padding:9px 16px;gap:10px;font-size:11px;}
+  .topnav__brand span{display:none;}
+  .topnav__links{gap:12px;}
   .page{padding:36px 16px 80px;}
   .site-nav.chapter-nav{grid-template-columns:1fr;gap:14px;}
   .site-nav.chapter-nav a.nav-prev,
