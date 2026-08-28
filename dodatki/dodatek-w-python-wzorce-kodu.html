@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dodatek W — Głębiej: Wzorce Pythona w kodzie narzędzi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="topnav__brand" href="../index.html">Pipeline <span>dla Artystów Technicznych</span></a>
+  <div class="topnav__links">
+    <a href="dodatek-v-studia-przypadkow-awarii.html">← Dod. V</a>
+    <a href="../index.html">Spis treści</a>
+    <a href="../rozdzialy/rozdzial-14-python.html">↑ R.14</a>
+  </div>
+</nav>
+<div class="page">
+
+  <div class="viewport-readout">
+    <span>DODATEK · W</span><span>MODUŁY · pathlib, subprocess, dataclasses, logging</span><span>EXT OF · Rozdział 14</span>
+  </div>
+
+  <div class="eyebrow">Dodatek W / Głębiej: Narzędzia</div>
+  <h1>Wzorce Pythona w kodzie narzędzi</h1>
+  <p class="subtitle">Rozdział 14 wyjaśnił, po co w pipeline jest akurat Python. Ten dodatek pokazuje, jak wygląda kod, który się z niego naprawdę pisze — te same kilkanaście operacji i metod, które wracają w prawie każdym narzędziu, niezależnie od studia.</p>
+
+  <div class="panel">
+    <div class="panel-label">TL;DR</div>
+    <ul>
+      <li>Kod narzędzia pipeline'owego to nie egzotyczny Python — to wciąż te same kilka modułów standardowej biblioteki, wracające bez końca: <code>pathlib</code>, <code>subprocess</code>, <code>argparse</code>, <code>json</code>, <code>dataclasses</code>, <code>logging</code>, comprehensions, <code>contextlib</code>.</li>
+      <li>Większość pisania narzędzia to nie algorytmy — to rozmowa ze światem zewnętrznym: z plikami na dysku, z innymi programami uruchamianymi jako podproces, z danymi, które ktoś inny zwrócił z API.</li>
+      <li>To, co odróżnia działające demo od narzędzia, któremu zaufa 200 artystów, to zwykle trzy konkretne rzeczy: porządna obsługa ścieżek, prawdziwy <code>logging</code> zamiast <code>print</code>, i łapanie konkretnych wyjątków zamiast gołego <code>except</code>.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Ścieżki i pliki</div>
+    <h2>Ścieżki jako obiekty, nie sklejane stringi</h2>
+    <p>Pomocnik pokazał budowanie ścieżki przez <code>os.path.join</code> — to wciąż działający, częsty w starszym kodzie styl. We współczesnym kodzie narzędziowym dominuje jednak <code>pathlib.Path</code>: ścieżka staje się obiektem z operatorem <code>/</code> zamiast sklejania stringów, i z metodami, które same wiedzą, jak się zachować na Windows i na Linuksie naraz.</p>
+
+    <div class="code-block"><pre><span style="color:var(--text-dim);">from pathlib import Path</span>
+
+publish_dir = Path(show) / task / <span style="color:var(--amber);">"publish"</span>
+publish_dir.mkdir(parents=<span style="color:var(--amber);">True</span>, exist_ok=<span style="color:var(--amber);">True</span>)
+
+latest = publish_dir / <span style="color:var(--amber);">"shot0100_v004.json"</span>
+preview = latest.with_suffix(<span style="color:var(--amber);">".jpg"</span>)   <span style="color:var(--text-dim);"># shot0100_v004.jpg</span>
+print(latest.exists(), latest.parent.name)</pre></div>
+
+    <p>Narzędzie rzadko operuje na jednym pliku — częściej na wszystkich plikach danego typu w całym showie. <code>Path.rglob()</code> przeszukuje drzewo katalogów rekurencyjnie i leniwie: nie wczytuje całej listy do pamięci naraz, tylko zwraca kolejne dopasowania jedno po drugim, co ma znaczenie, gdy show ma setki tysięcy plików.</p>
+
+    <div class="code-block"><pre><span style="color:var(--text-dim);">from pathlib import Path</span>
+
+show_root = Path(<span style="color:var(--amber);">"/shows/demo"</span>)
+<span style="color:var(--text-dim);">for</span> texture <span style="color:var(--text-dim);">in</span> show_root.rglob(<span style="color:var(--amber);">"*.tex"</span>):
+    print(f<span style="color:var(--amber);">"znaleziono: {texture.relative_to(show_root)}"</span>)</pre></div>
+
+    <p>Nazwy plików w pipeline zwykle kodują metadane w samej nazwie — numer shota, numer wersji. Wyrażenie regularne z nazwanymi grupami wyciąga je naraz, jedną operacją, zamiast ręcznego cięcia stringa po znaku podkreślenia i licząc, że format nigdy się nie zmieni.</p>
+
+    <div class="code-block"><pre><span style="color:var(--text-dim);">import re</span>
+
+pattern = re.compile(<span style="color:var(--amber);">r"shot_(?P&lt;shot&gt;\d+)_v(?P&lt;version&gt;\d+)\.\w+$"</span>)
+match = pattern.match(<span style="color:var(--amber);">"shot_010_v003.mb"</span>)
+<span style="color:var(--text-dim);">if</span> match:
+    shot = match.group(<span style="color:var(--amber);">"shot"</span>)              <span style="color:var(--text-dim);"># "010"</span>
+    version = int(match.group(<span style="color:var(--amber);">"version"</span>))   <span style="color:var(--text-dim);"># 3</span></pre></div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Procesy zewnętrzne</div>
+    <h2>Python jako klej, nie jako silnik</h2>
+    <p>Rozdział 14 postawił tezę: Python nie zastępuje C++, tylko go spina. W kodzie narzędzia widać to dosłownie — większość linii nie liczy niczego samodzielnie, tylko woła inny program i sprawdza, czy się udało. <code>subprocess.run()</code> to standardowy sposób: przechwycić wyjście, sprawdzić kod wyjścia, nigdy nie zakładać, że zewnętrzny program się nie wywalił.</p>
+
+    <div class="code-block"><pre><span style="color:var(--text-dim);">import subprocess</span>
+
+result = subprocess.run(
+    [<span style="color:var(--amber);">"ffmpeg"</span>, <span style="color:var(--amber);">"-i"</span>, str(src), <span style="color:var(--amber);">"-vframes"</span>, <span style="color:var(--amber);">"1"</span>, str(thumbnail)],
+    capture_output=<span style="color:var(--amber);">True</span>, text=<span style="color:var(--amber);">True</span>,
+)
+<span style="color:var(--text-dim);">if</span> result.returncode != 0:
+    <span style="color:var(--text-dim);">raise</span> RuntimeError(f<span style="color:var(--amber);">"ffmpeg nie powiódł się: {result.stderr}"</span>)</pre></div>
+
+    <p>Samodzielne skrypty farmowe (Rozdział 19) uruchamiają się poza jakimkolwiek DCC, więc potrzebują prawdziwego interfejsu linii poleceń — nie wartości wpisanych na sztywno na górze pliku. <code>argparse</code> daje nazwane flagi, wartości domyślne i, praktycznie za darmo, tryb <code>--dry-run</code> do bezpiecznego testowania.</p>
+
+    <div class="code-block"><pre><span style="color:var(--text-dim);">import argparse</span>
+
+parser = argparse.ArgumentParser(description=<span style="color:var(--amber);">"Konwersja tekstur showu wsadowo"</span>)
+parser.add_argument(<span style="color:var(--amber);">"show"</span>)
+parser.add_argument(<span style="color:var(--amber);">"--dry-run"</span>, action=<span style="color:var(--amber);">"store_true"</span>,
+                     help=<span style="color:var(--amber);">"tylko pokaż, co by się stało"</span>)
+args = parser.parse_args()
+
+<span style="color:var(--text-dim);">if</span> args.dry_run:
+    print(f<span style="color:var(--amber);">"[dry-run] skonwertowałbym tekstury dla {args.show}"</span>)</pre></div>
+
+    <p>Sesja DCC i samodzielny proces na farmie łączy ten sam kontekst — show, shot — ale nie przez argumenty, tylko przez zmienne środowiskowe, ustawione raz przy budowie rozwiązanego środowiska (Dodatek I). <code>os.environ.get()</code> z wartością domyślną to obronny, standardowy sposób ich odczytu.</p>
+
+    <div class="code-block"><pre><span style="color:var(--text-dim);">import os</span>
+
+show = os.environ.get(<span style="color:var(--amber);">"SHOW"</span>)
+shot = os.environ.get(<span style="color:var(--amber);">"SHOT"</span>, <span style="color:var(--amber);">"unknown"</span>)
+<span style="color:var(--text-dim);">if</span> show <span style="color:var(--text-dim);">is</span> <span style="color:var(--amber);">None</span>:
+    <span style="color:var(--text-dim);">raise</span> EnvironmentError(<span style="color:var(--amber);">"SHOW nie jest ustawione — uruchom w rozwiązanym kontekście"</span>)</pre></div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Reprezentacja danych</div>
+    <h2>Kiedy dict przestaje wystarczać</h2>
+    <p>Dict z kluczami-stringami jest wszędzie w kodzie narzędziowym, ale ma cichą wadę: literówka w kluczu nie wywali błędu od razu, tylko gdzieś dalej, jako <code>KeyError</code> w zupełnie innym miejscu kodu. <code>@dataclass</code> daje strukturze nazwę i kształt — pola, typy, czytelny <code>repr</code> — przy minimalnym narzucie w stosunku do zwykłej klasy.</p>
+
+    <div class="code-block"><pre><span style="color:var(--text-dim);">from dataclasses import dataclass</span>
+
+<span style="color:var(--text-dim);">@dataclass</span>
+<span style="color:var(--text-dim);">class</span> Shot:
+    show: str
+    number: str
+    frame_range: tuple[int, int]
+
+    <span style="color:var(--text-dim);">@property</span>
+    <span style="color:var(--text-dim);">def</span> name(self) -&gt; str:
+        <span style="color:var(--text-dim);">return</span> f<span style="color:var(--amber);">"{self.show}_{self.number}"</span>
+
+s = Shot(<span style="color:var(--amber);">"DEMO"</span>, <span style="color:var(--amber);">"010"</span>, (1001, 1150))
+print(s.name, s)   <span style="color:var(--text-dim);"># DEMO_010, Shot(show='DEMO', number='010', ...)</span></pre></div>
+
+    <p>Zapytanie do API takiego jak ShotGrid/Flow (Rozdział 8) zwraca listę dictów. Comprehension to idiomatyczny sposób ich filtrowania i przekształcania — jedna linia zamiast pętli <code>for</code> z ręcznym <code>append</code>.</p>
+
+    <div class="code-block"><pre><span style="color:var(--text-dim);"># entities = wynik zapytania do ShotGrid/Flow, lista dictów</span>
+approved_shots = [e[<span style="color:var(--amber);">"code"</span>] <span style="color:var(--text-dim);">for</span> e <span style="color:var(--text-dim);">in</span> entities <span style="color:var(--text-dim);">if</span> e[<span style="color:var(--amber);">"sg_status_list"</span>] == <span style="color:var(--amber);">"apr"</span>]
+by_code = {e[<span style="color:var(--amber);">"code"</span>]: e <span style="color:var(--text-dim);">for</span> e <span style="color:var(--text-dim);">in</span> entities}</pre></div>
+
+    <p>Configi w pipeline zwykle mają warstwy — wartości domyślne dla całego showu, nadpisane per shot. Złożenie dwóch dictów jedną linią (<code>{**defaults, **overrides}</code>) to prostszy odpowiednik ręcznego kopiowania klucz po kluczu.</p>
+
+    <div class="code-block"><pre><span style="color:var(--text-dim);">import json</span>
+
+<span style="color:var(--text-dim);">with</span> open(config_path) <span style="color:var(--text-dim);">as</span> f:
+    overrides = json.load(f)
+
+defaults = {<span style="color:var(--amber);">"fps"</span>: 24, <span style="color:var(--amber);">"resolution"</span>: [1920, 1080]}
+config = {**defaults, **overrides}   <span style="color:var(--text-dim);"># overrides wygrywają przy konflikcie</span></pre></div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Etap: Odporność</div>
+    <h2>To, co odróżnia demo od narzędzia dla 200 artystów</h2>
+    <p><code>print()</code> nie ma poziomów, nie da się go wyłączyć ani przekierować do pliku loga na farmie bez przepisywania kodu. <code>logging</code> rozwiązuje wszystkie trzy naraz — i, przy okazji, <code>log.exception()</code> zapisuje pełny traceback, nie tylko treść komunikatu.</p>
+
+    <div class="code-block"><pre><span style="color:var(--text-dim);">import logging</span>
+
+log = logging.getLogger(__name__)
+
+<span style="color:var(--text-dim);">def</span> publish(shot):
+    log.info(<span style="color:var(--amber);">"publikuję %s"</span>, shot.name)
+    <span style="color:var(--text-dim);">try</span>:
+        ...
+    <span style="color:var(--text-dim);">except</span> OSError:
+        log.exception(<span style="color:var(--amber);">"publish nie powiódł się dla %s"</span>, shot.name)
+        <span style="color:var(--text-dim);">raise</span></pre></div>
+
+    <p>Goły <code>except:</code> łapie dosłownie wszystko — literówkę w nazwie zmiennej tak samo jak brak pliku — i chowa błąd zamiast go ujawnić. Rozdział 15 mówił o czytelnym komunikacie zamiast surowego tracebacka; własna klasa wyjątku plus łapanie konkretnego typu to sposób, żeby to zrobić w praktyce.</p>
+
+    <div class="code-block"><pre><span style="color:var(--text-dim);">class</span> PublishError(Exception):
+    <span style="color:var(--text-dim);">"""Coś poszło nie tak podczas publikowania wersji."""</span>
+
+<span style="color:var(--text-dim);">def</span> publish(shot):
+    <span style="color:var(--text-dim);">try</span>:
+        _write_version(shot)
+    <span style="color:var(--text-dim);">except</span> FileNotFoundError <span style="color:var(--text-dim);">as</span> e:
+        <span style="color:var(--text-dim);">raise</span> PublishError(f<span style="color:var(--amber);">"brak folderu publish dla {shot.name}"</span>) <span style="color:var(--text-dim);">from</span> e</pre></div>
+
+    <p>Ostatni powracający wzorzec: „tymczasowo zmień coś, zawsze przywróć — nawet jeśli coś po drodze wybuchnie". Blok <code>with</code> gwarantuje, że kod sprzątający uruchomi się także przy wyjątku; <code>contextlib.contextmanager</code> to najlżejszy sposób, żeby taki menedżer kontekstu napisać samemu, bez pełnej klasy z <code>__enter__</code>/<code>__exit__</code>.</p>
+
+    <div class="code-block"><pre><span style="color:var(--text-dim);">from contextlib import contextmanager</span>
+
+<span style="color:var(--text-dim);">@contextmanager</span>
+<span style="color:var(--text-dim);">def</span> temp_namespace(ns):
+    previous = cmds.namespaceInfo(currentNamespace=<span style="color:var(--amber);">True</span>)
+    cmds.namespace(set=ns)
+    <span style="color:var(--text-dim);">try</span>:
+        <span style="color:var(--text-dim);">yield</span>
+    <span style="color:var(--text-dim);">finally</span>:
+        cmds.namespace(set=previous)   <span style="color:var(--text-dim);"># wraca nawet po wyjątku</span>
+
+<span style="color:var(--text-dim);">with</span> temp_namespace(<span style="color:var(--amber);">"REF_charA"</span>):
+    cmds.createNode(<span style="color:var(--amber);">"transform"</span>)</pre></div>
+  </div>
+
+<div class="site-nav">
+    <a href="../index.html">← Spis treści</a>
+    <a href="../rozdzialy/rozdzial-14-python.html">↑ Rozdział 14: Python jako wspólny język pipeline'u</a>
+</div>
+</div>
+</body>
+</html>
